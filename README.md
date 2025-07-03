@@ -1,180 +1,271 @@
 # 🧠 Quizzer Frontend
 
-Un sito web React moderno per la gestione di quiz interattivi con pagina di benvenuto e dashboard amministrativa.
+Un'applicazione React moderna per la gestione e svolgimento di quiz interattivi.
 
-## 🚀 Caratteristiche
+## 🚀 Features
 
-- **Pagina di Benvenuto**: Homepage accogliente con presentazione delle funzionalità
-- **Dashboard Admin**: Pannello amministrativo per gestire quiz, utenti e contenuti
-- **Design Responsive**: Ottimizzato per desktop, tablet e mobile
-- **Navigazione Fluida**: Routing con React Router
-- **Interfaccia Moderna**: Design pulito con animazioni CSS
+- **Dashboard Admin**: Gestione completa delle domande (CRUD)
+- **Sistema Quiz**: Quiz casuali con correzione automatica
+- **API Integration**: Integrazione completa con backend REST
+- **Responsive Design**: Ottimizzato per desktop e mobile
+- **Docker Ready**: Deployment facile con Docker e Docker Compose
 
-## 🛠️ Tecnologie Utilizzate
+## 📋 Prerequisiti
 
-- **React 18** - Libreria UI
-- **Vite** - Build tool veloce
-- **React Router DOM** - Gestione routing
-- **CSS3** - Styling con gradienti e animazioni
+- Node.js 18+ (per development)
+- Docker & Docker Compose (per deployment)
+- Backend API running su porta configurabile
 
-## 📁 Struttura del Progetto
+## 🛠 Development Setup
 
-```
-quizzer_frontend/
-├── src/
-│   ├── components/          # Componenti riutilizzabili
-│   │   ├── Layout.jsx       # Layout principale
-│   │   ├── Header.jsx       # Header con navigazione
-│   │   ├── Footer.jsx       # Footer
-│   │   └── QuestionsList.jsx # Componente per visualizzare domande
-│   ├── pages/               # Pagine dell'applicazione
-│   │   ├── Welcome.jsx      # Pagina di benvenuto
-│   │   └── Admin.jsx        # Dashboard admin
-│   ├── services/            # Servizi API
-│   │   └── api.js           # Chiamate API REST
-│   ├── styles/
-│   │   └── index.css        # Stili globali
-│   ├── App.jsx              # Componente principale
-│   └── main.jsx             # Entry point
-├── .env                     # Variabili d'ambiente
-├── package.json
-├── vite.config.js
-└── index.html
-```
+### 1. Installazione dipendenze
 
-## ✨ Funzionalità Implementate
-
-- **🏠 Pagina Welcome**: Interfaccia di benvenuto con design moderno e sezioni informative
-- **🧠 Sistema Quiz**: Quiz interattivi con domande casuali dal database
-- **📊 Correzione Automatica**: Risultati immediati con dettaglio risposte corrette/sbagliate
-- **🎯 Quiz Personalizzabili**: Selezione numero di domande (3, 5, 10, 15, 20)
-- **⚙️ Dashboard Admin**: Pannello amministrativo completo
-- **📋 Visualizzazione Domande**: Interfaccia per vedere tutte le domande dal database
-- **➕ Creazione Domande**: Form completo per aggiungere nuove domande con risposte
-- **🗑️ Cancellazione Domande**: Pulsante per eliminare domande con conferma utente
-- **🔄 Aggiornamento Real-time**: Refresh automatico dopo operazioni e pulsanti manuali
-- **⚡ Stati Dinamici**: Gestione loading, errori e dati vuoti
-- **✅ Validazione Form**: Controlli automatici per dati obbligatori e risposte corrette
-- **🎯 Gestione Risposte**: Aggiunta/rimozione dinamica di risposte multiple
-- **🔒 Conferme Sicurezza**: Dialog di conferma per operazioni critiche
-- **🎨 Design Responsive**: Ottimizzato per tutti i dispositivi
-- **🔌 Integrazione API**: Connessione automatica al backend (GET/POST/DELETE)
-- **⚙️ Configurazione Flessibile**: URL API configurabile tramite `.env`
-
-## 🚀 Come Iniziare
-
-### 1. Installare le dipendenze
 ```bash
 npm install
 ```
 
-### 2. Avviare il server di sviluppo
+### 2. Configurazione Environment
+
+Crea un file `.env` nella root del progetto:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+### 3. Avvio Development Server
+
 ```bash
 npm run dev
 ```
 
-### 3. Configurare l'API (opzionale)
-Se il tuo backend API non è su `http://localhost:8080`, modifica il file `.env`:
-```bash
-VITE_API_BASE_URL=http://localhost:8080
-```
-
-### 4. Aprire il browser
 L'applicazione sarà disponibile su `http://localhost:5173`
 
-## 📱 Navigazione
+## 🐳 Deployment con Docker
 
-- **/** - Pagina di benvenuto principale con pulsante per iniziare quiz
-- **/quiz** - Sistema di quiz interattivo con domande casuali
-- **/admin** - Dashboard amministrativa con gestione completa domande
+### Deployment rapido (Development)
 
-## 🔌 API Integration
+```bash
+# Build e avvio
+docker-compose up -d
 
-Il frontend si collega automaticamente a un backend API per gestire le domande. Gli endpoint utilizzati sono:
-
-- **GET** `/api/questions` - Recupera tutte le domande con risposte
-- **GET** `/api/questions/random?size={number}` - Recupera domande casuali per quiz
-- **POST** `/api/questions` - Crea una nuova domanda
-- **DELETE** `/api/questions/{id}` - Cancella una domanda per ID
-
-### Formato dati GET (lista domande):
-```json
-[
-  {
-    "id": 302,
-    "title": "Titolo domanda",
-    "question": "Testo della domanda?",
-    "answers": [
-      {
-        "answer": "Risposta corretta",
-        "correct": true
-      },
-      {
-        "answer": "Risposta sbagliata",
-        "correct": false
-      }
-    ]
-  }
-]
+# Controlla i logs
+docker-compose logs -f
 ```
 
-### Formato dati GET Random (quiz):
-```json
-[
-  {
-    "id": 402,
-    "title": "Titolo domanda",
-    "question": "Testo della domanda?",
-    "answers": [
-      {
-        "id": 52,
-        "answer": "Risposta 1",
-        "correct": false
-      },
-      {
-        "id": 53,
-        "answer": "Risposta 2", 
-        "correct": true
-      }
-    ]
-  }
-]
+L'app sarà disponibile su `http://localhost:3000`
+
+### Deployment Produzione
+
+1. **Configura l'URL API** in `docker-compose.prod.yml`:
+
+```yaml
+environment:
+  - VITE_API_BASE_URL=https://your-api-domain.com
 ```
 
-### Formato dati POST (creazione domanda):
+2. **Deploy in produzione**:
+
+```bash
+# Build e avvio per produzione
+docker-compose -f docker-compose.prod.yml up -d
+
+# Verifica status
+docker-compose -f docker-compose.prod.yml ps
+```
+
+### 🔧 Configurazione Environment Variables
+
+Le seguenti variabili possono essere configurate a runtime:
+
+| Variabile | Descrizione | Default | Esempio |
+|-----------|-------------|---------|---------|
+| `VITE_API_BASE_URL` | URL base dell'API backend | `http://localhost:8080` | `https://api.yourdomain.com` |
+
+#### Esempi di configurazione:
+
+```bash
+# Local development
+VITE_API_BASE_URL=http://localhost:8080
+
+# Production con dominio
+VITE_API_BASE_URL=https://api.yourdomain.com
+
+# Production con IP
+VITE_API_BASE_URL=http://192.168.1.100:8080
+
+# Con diversa porta
+VITE_API_BASE_URL=http://localhost:3001
+```
+
+### 🚀 Comandi Docker Utili
+
+```bash
+# Build dell'immagine
+docker build -t quizzer-frontend .
+
+# Run container singolo
+docker run -d \
+  -p 3000:80 \
+  -e VITE_API_BASE_URL=http://localhost:8080 \
+  --name quizzer-frontend \
+  quizzer-frontend
+
+# Verifica health check
+docker exec quizzer-frontend wget -qO- http://localhost/health
+
+# Aggiorna configurazione API (richiede restart)
+docker-compose down
+docker-compose up -d
+
+# Visualizza logs
+docker-compose logs -f quizzer-frontend
+
+# Accesso al container
+docker exec -it quizzer-frontend sh
+```
+
+### 🔍 Troubleshooting Docker
+
+#### Container non si avvia
+
+```bash
+# Controlla logs
+docker-compose logs quizzer-frontend
+
+# Verifica variabili d'ambiente
+docker exec quizzer-frontend env | grep VITE
+```
+
+#### API non raggiungibile
+
+1. Verifica che l'URL API sia corretto
+2. Controlla che il backend sia in running
+3. Verifica la rete Docker:
+
+```bash
+# Test connessione dall'interno del container
+docker exec quizzer-frontend wget -qO- $VITE_API_BASE_URL/api/questions
+```
+
+#### Problemi di CORS
+
+Configura il backend per accettare richieste dall'origine del frontend:
+- Development: `http://localhost:5173`
+- Production: `http://your-domain.com`
+
+## 📚 API Endpoints utilizzati
+
+L'applicazione utilizza i seguenti endpoint del backend:
+
+- `GET /api/questions` - Lista tutte le domande
+- `POST /api/questions` - Crea nuova domanda  
+- `DELETE /api/questions/{id}` - Elimina domanda
+- `GET /api/questions/random?size={n}` - Domande casuali per quiz
+
+### Formato dati API
+
+#### Domanda (GET/POST):
 ```json
 {
+  "id": 302,
   "title": "Titolo domanda",
   "question": "Testo della domanda?",
   "answers": [
-    {
-      "answer": "Paris",
-      "correct": true
-    },
-    {
-      "answer": "London",
-      "correct": false
-    },
-    {
-      "answer": "Berlin",
-      "correct": false
-    }
+    {"answer": "Risposta 1", "correct": true},
+    {"answer": "Risposta 2", "correct": false}
   ]
 }
 ```
 
-## 🎨 Personalizzazione
-
-I colori e gli stili possono essere modificati nel file `src/styles/index.css`. Il tema utilizza un gradiente blu-viola moderno che può essere facilmente personalizzato.
-
-## 🏗️ Build per Produzione
-
-```bash
-npm run build
+#### Quiz Random (GET):
+```json
+[
+  {
+    "id": 402,
+    "title": "Titolo",
+    "question": "Testo domanda?",
+    "answers": [
+      {"id": 52, "answer": "Risposta 1", "correct": false},
+      {"id": 53, "answer": "Risposta 2", "correct": true}
+    ]
+  }
+]
 ```
 
-I file ottimizzati saranno generati nella cartella `dist/`.
+## 🎯 Struttura del Progetto
+
+```
+quizzer_frontend/
+├── src/
+│   ├── components/         # Componenti React
+│   │   ├── AddQuestionForm.jsx
+│   │   ├── Quiz.jsx
+│   │   ├── QuestionsList.jsx
+│   │   └── Layout.jsx
+│   ├── pages/             # Pagine principali
+│   │   ├── Welcome.jsx
+│   │   └── Admin.jsx
+│   ├── services/          # Servizi API
+│   │   └── api.js
+│   └── styles/           # CSS styles
+│       └── index.css
+├── public/               # Asset statici
+├── Dockerfile           # Configurazione Docker
+├── docker-compose.yml   # Docker Compose per dev
+├── docker-compose.prod.yml # Docker Compose per prod
+├── nginx.conf          # Configurazione Nginx
+└── docker-entrypoint.sh # Script configurazione runtime
+```
+
+## 🌟 Features del Sistema
+
+### Admin Dashboard
+- ✅ Visualizzazione lista domande con paginazione
+- ✅ Aggiunta nuove domande con risposte multiple
+- ✅ Eliminazione domande con conferma
+- ✅ Refresh automatico dopo operazioni
+- ✅ Gestione errori e stati di loading
+
+### Sistema Quiz  
+- ✅ Selezione numero domande personalizzabile (1-50)
+- ✅ Domande casuali dal database
+- ✅ Interfaccia intuitiva per risposte
+- ✅ Correzione automatica con dettagli
+- ✅ Punteggio percentuale e analisi risultati
+
+### UI/UX
+- ✅ Design moderno e responsive
+- ✅ Animazioni e transizioni fluide
+- ✅ Stati di loading e feedback utente
+- ✅ Gestione errori user-friendly
+- ✅ Accessibilità e usabilità ottimizzate
+
+## 🔒 Considerazioni di Sicurezza
+
+- Headers di sicurezza configurati in Nginx
+- Validazione input lato client
+- Gestione errori sicura senza esposizione di dettagli
+- CORS da configurare sul backend
+
+## 📱 Responsive Design
+
+L'applicazione è completamente responsive:
+- 📱 Mobile (320px+)
+- 📊 Tablet (768px+) 
+- 💻 Desktop (1200px+)
+
+## 🚀 Performance
+
+- Build ottimizzato con Vite
+- Compressione Gzip attivata
+- Caching degli asset statici
+- Bundle splitting automatico
+- Lazy loading dei componenti
 
 ## 📄 Licenza
 
-Progetto sviluppato per scopi educativi e dimostrativi. 
+MIT License - Vedi file LICENSE per dettagli
+
+---
+
+**Developed with ❤️ using React 18 + Vite + Docker** 

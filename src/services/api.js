@@ -1,40 +1,37 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// API configuration with runtime environment variable support
+const getApiBaseUrl = () => {
+  // In production build, this will be replaced by docker-entrypoint.sh
+  // In development, it uses the standard Vite env variable
+  if (import.meta.env.MODE === 'production') {
+    return 'VITE_API_BASE_URL_PLACEHOLDER';
+  }
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+};
 
-export const questionsApi = {
-  // Ottieni tutte le domande
-  getAllQuestions: async () => {
+const API_BASE_URL = getApiBaseUrl();
+
+// API service class
+class QuestionsApi {
+  constructor() {
+    this.baseUrl = API_BASE_URL;
+  }
+
+  async getAllQuestions() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/questions`);
+      const response = await fetch(`${this.baseUrl}/api/questions`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Errore nel recupero delle domande:', error);
+      console.error('Error fetching questions:', error);
       throw error;
     }
-  },
+  }
 
-  // Ottieni domande casuali per il quiz
-  getRandomQuestions: async (size) => {
+  async createQuestion(questionData) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/questions/random?size=${size}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Errore nel recupero delle domande casuali:', error);
-      throw error;
-    }
-  },
-
-  // Crea una nuova domanda
-  createQuestion: async (questionData) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/questions`, {
+      const response = await fetch(`${this.baseUrl}/api/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,18 +43,16 @@ export const questionsApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Errore nella creazione della domanda:', error);
+      console.error('Error creating question:', error);
       throw error;
     }
-  },
+  }
 
-  // Cancella una domanda per ID
-  deleteQuestion: async (questionId) => {
+  async deleteQuestion(questionId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/questions/${questionId}`, {
+      const response = await fetch(`${this.baseUrl}/api/questions/${questionId}`, {
         method: 'DELETE'
       });
       
@@ -65,12 +60,35 @@ export const questionsApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      return true;
+      // La delete potrebbe non restituire contenuto
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      
+      return { success: true };
     } catch (error) {
-      console.error('Errore nella cancellazione della domanda:', error);
+      console.error('Error deleting question:', error);
       throw error;
     }
   }
-};
 
-export default questionsApi; 
+  async getRandomQuestions(size = 5) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/questions/random?size=${size}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching random questions:', error);
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance
+export const questionsApi = new QuestionsApi();
+
+// Export class for testing
+export default QuestionsApi; 
