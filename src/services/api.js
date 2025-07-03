@@ -16,6 +16,21 @@ export const questionsApi = {
     }
   },
 
+  // Ottieni domande casuali per il quiz
+  getRandomQuestions: async (size) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/questions/random?size=${size}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Errore nel recupero delle domande casuali:', error);
+      throw error;
+    }
+  },
+
   // Crea una nuova domanda
   createQuestion: async (questionData) => {
     try {

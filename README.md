@@ -45,6 +45,9 @@ quizzer_frontend/
 ## ✨ Funzionalità Implementate
 
 - **🏠 Pagina Welcome**: Interfaccia di benvenuto con design moderno e sezioni informative
+- **🧠 Sistema Quiz**: Quiz interattivi con domande casuali dal database
+- **📊 Correzione Automatica**: Risultati immediati con dettaglio risposte corrette/sbagliate
+- **🎯 Quiz Personalizzabili**: Selezione numero di domande (3, 5, 10, 15, 20)
 - **⚙️ Dashboard Admin**: Pannello amministrativo completo
 - **📋 Visualizzazione Domande**: Interfaccia per vedere tutte le domande dal database
 - **➕ Creazione Domande**: Form completo per aggiungere nuove domande con risposte
@@ -81,14 +84,16 @@ L'applicazione sarà disponibile su `http://localhost:5173`
 
 ## 📱 Navigazione
 
-- **/** - Pagina di benvenuto principale
-- **/admin** - Dashboard amministrativa con visualizzazione domande
+- **/** - Pagina di benvenuto principale con pulsante per iniziare quiz
+- **/quiz** - Sistema di quiz interattivo con domande casuali
+- **/admin** - Dashboard amministrativa con gestione completa domande
 
 ## 🔌 API Integration
 
 Il frontend si collega automaticamente a un backend API per gestire le domande. Gli endpoint utilizzati sono:
 
 - **GET** `/api/questions` - Recupera tutte le domande con risposte
+- **GET** `/api/questions/random?size={number}` - Recupera domande casuali per quiz
 - **POST** `/api/questions` - Crea una nuova domanda
 - **DELETE** `/api/questions/{id}` - Cancella una domanda per ID
 
@@ -107,6 +112,29 @@ Il frontend si collega automaticamente a un backend API per gestire le domande. 
       {
         "answer": "Risposta sbagliata",
         "correct": false
+      }
+    ]
+  }
+]
+```
+
+### Formato dati GET Random (quiz):
+```json
+[
+  {
+    "id": 402,
+    "title": "Titolo domanda",
+    "question": "Testo della domanda?",
+    "answers": [
+      {
+        "id": 52,
+        "answer": "Risposta 1",
+        "correct": false
+      },
+      {
+        "id": 53,
+        "answer": "Risposta 2", 
+        "correct": true
       }
     ]
   }

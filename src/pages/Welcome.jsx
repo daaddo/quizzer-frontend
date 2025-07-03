@@ -10,9 +10,14 @@ const Welcome = () => {
           La piattaforma definitiva per creare e gestire quiz interattivi
         </p>
         
-        <Link to="/admin" className="btn">
-          Accedi alla Dashboard Admin
-        </Link>
+        <div className="welcome-cta">
+          <Link to="/quiz" className="btn btn-large cta-button">
+            🧠 Inizia un Nuovo Quiz
+          </Link>
+          <Link to="/admin" className="btn btn-secondary">
+            ⚙️ Dashboard Admin
+          </Link>
+        </div>
 
         <div className="welcome-features">
           <div className="feature-card">
