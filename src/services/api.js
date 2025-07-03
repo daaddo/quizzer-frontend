@@ -37,6 +37,24 @@ export const questionsApi = {
       console.error('Errore nella creazione della domanda:', error);
       throw error;
     }
+  },
+
+  // Cancella una domanda per ID
+  deleteQuestion: async (questionId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/questions/${questionId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Errore nella cancellazione della domanda:', error);
+      throw error;
+    }
   }
 };
 

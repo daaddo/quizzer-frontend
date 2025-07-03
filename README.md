@@ -48,12 +48,14 @@ quizzer_frontend/
 - **⚙️ Dashboard Admin**: Pannello amministrativo completo
 - **📋 Visualizzazione Domande**: Interfaccia per vedere tutte le domande dal database
 - **➕ Creazione Domande**: Form completo per aggiungere nuove domande con risposte
-- **🔄 Aggiornamento Real-time**: Refresh automatico dopo aggiunta e pulsanti manuali
+- **🗑️ Cancellazione Domande**: Pulsante per eliminare domande con conferma utente
+- **🔄 Aggiornamento Real-time**: Refresh automatico dopo operazioni e pulsanti manuali
 - **⚡ Stati Dinamici**: Gestione loading, errori e dati vuoti
 - **✅ Validazione Form**: Controlli automatici per dati obbligatori e risposte corrette
 - **🎯 Gestione Risposte**: Aggiunta/rimozione dinamica di risposte multiple
+- **🔒 Conferme Sicurezza**: Dialog di conferma per operazioni critiche
 - **🎨 Design Responsive**: Ottimizzato per tutti i dispositivi
-- **🔌 Integrazione API**: Connessione automatica al backend (GET/POST)
+- **🔌 Integrazione API**: Connessione automatica al backend (GET/POST/DELETE)
 - **⚙️ Configurazione Flessibile**: URL API configurabile tramite `.env`
 
 ## 🚀 Come Iniziare
@@ -88,6 +90,7 @@ Il frontend si collega automaticamente a un backend API per gestire le domande. 
 
 - **GET** `/api/questions` - Recupera tutte le domande con risposte
 - **POST** `/api/questions` - Crea una nuova domanda
+- **DELETE** `/api/questions/{id}` - Cancella una domanda per ID
 
 ### Formato dati GET (lista domande):
 ```json

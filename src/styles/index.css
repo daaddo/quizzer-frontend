@@ -370,10 +370,20 @@ body {
 .btn-danger {
   background: #dc3545;
   color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background: #c82333;
+  transform: translateY(-1px);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Questions Grid */
@@ -408,6 +418,14 @@ body {
   font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
+  flex: 1;
+}
+
+.question-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .question-id {
@@ -637,6 +655,11 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
+  }
+
+  .question-actions {
+    align-self: flex-end;
+    margin-top: 0.5rem;
   }
 
   .answer-item {

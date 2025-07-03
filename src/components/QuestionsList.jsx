@@ -5,6 +5,7 @@ const QuestionsList = ({ refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     loadQuestions();
@@ -25,6 +26,30 @@ const QuestionsList = ({ refreshTrigger }) => {
 
   const handleRefresh = () => {
     loadQuestions();
+  };
+
+  const handleDeleteQuestion = async (questionId, questionTitle) => {
+    // Conferma prima di cancellare
+    const confirmed = window.confirm(
+      `Sei sicuro di voler cancellare la domanda "${questionTitle}"?\n\nQuesta azione non può essere annullata.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(questionId);
+      await questionsApi.deleteQuestion(questionId);
+      
+      // Rimuovi la domanda dalla lista locale senza ricaricare tutto
+      setQuestions(prevQuestions => 
+        prevQuestions.filter(question => question.id !== questionId)
+      );
+      
+    } catch (err) {
+      setError('Errore nella cancellazione: ' + err.message);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -70,7 +95,17 @@ const QuestionsList = ({ refreshTrigger }) => {
             <div key={question.id} className="question-card">
               <div className="question-header">
                 <h3 className="question-title">{question.title}</h3>
-                <span className="question-id">ID: {question.id}</span>
+                <div className="question-actions">
+                  <span className="question-id">ID: {question.id}</span>
+                  <button
+                    onClick={() => handleDeleteQuestion(question.id, question.title)}
+                    className="btn btn-danger btn-small"
+                    disabled={deletingId === question.id}
+                    title="Cancella domanda"
+                  >
+                    {deletingId === question.id ? '⏳' : '🗑️'}
+                  </button>
+                </div>
               </div>
               
               <div className="question-content">
