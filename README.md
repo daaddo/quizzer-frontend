@@ -47,10 +47,13 @@ quizzer_frontend/
 - **🏠 Pagina Welcome**: Interfaccia di benvenuto con design moderno e sezioni informative
 - **⚙️ Dashboard Admin**: Pannello amministrativo completo
 - **📋 Visualizzazione Domande**: Interfaccia per vedere tutte le domande dal database
-- **🔄 Aggiornamento Real-time**: Pulsante per ricaricare le domande
+- **➕ Creazione Domande**: Form completo per aggiungere nuove domande con risposte
+- **🔄 Aggiornamento Real-time**: Refresh automatico dopo aggiunta e pulsanti manuali
 - **⚡ Stati Dinamici**: Gestione loading, errori e dati vuoti
+- **✅ Validazione Form**: Controlli automatici per dati obbligatori e risposte corrette
+- **🎯 Gestione Risposte**: Aggiunta/rimozione dinamica di risposte multiple
 - **🎨 Design Responsive**: Ottimizzato per tutti i dispositivi
-- **🔌 Integrazione API**: Connessione automatica al backend
+- **🔌 Integrazione API**: Connessione automatica al backend (GET/POST)
 - **⚙️ Configurazione Flessibile**: URL API configurabile tramite `.env`
 
 ## 🚀 Come Iniziare
@@ -81,11 +84,12 @@ L'applicazione sarà disponibile su `http://localhost:5173`
 
 ## 🔌 API Integration
 
-Il frontend si collega automaticamente a un backend API per recuperare le domande. L'endpoint utilizzato è:
+Il frontend si collega automaticamente a un backend API per gestire le domande. Gli endpoint utilizzati sono:
 
 - **GET** `/api/questions` - Recupera tutte le domande con risposte
+- **POST** `/api/questions` - Crea una nuova domanda
 
-### Formato dati atteso:
+### Formato dati GET (lista domande):
 ```json
 [
   {
@@ -104,6 +108,28 @@ Il frontend si collega automaticamente a un backend API per recuperare le domand
     ]
   }
 ]
+```
+
+### Formato dati POST (creazione domanda):
+```json
+{
+  "title": "Titolo domanda",
+  "question": "Testo della domanda?",
+  "answers": [
+    {
+      "answer": "Paris",
+      "correct": true
+    },
+    {
+      "answer": "London",
+      "correct": false
+    },
+    {
+      "answer": "Berlin",
+      "correct": false
+    }
+  ]
+}
 ```
 
 ## 🎨 Personalizzazione

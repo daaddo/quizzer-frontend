@@ -1,8 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import QuestionsList from '../components/QuestionsList'
+import AddQuestionForm from '../components/AddQuestionForm'
 
 const Admin = () => {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleQuestionAdded = () => {
+    // Incrementa il trigger per far ricaricare QuestionsList
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="admin-container">
       <div className="container">
@@ -13,8 +21,11 @@ const Admin = () => {
           </p>
         </div>
 
+        {/* Form per aggiungere nuove domande */}
+        <AddQuestionForm onQuestionAdded={handleQuestionAdded} />
+
         {/* Sezione per la gestione delle domande */}
-        <QuestionsList />
+        <QuestionsList refreshTrigger={refreshTrigger} />
 
         {/* Manteniamo i card originali per le altre funzionalità */}
         <div className="admin-dashboard">

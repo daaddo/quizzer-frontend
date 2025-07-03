@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { questionsApi } from '../services/api';
 
-const QuestionsList = () => {
+const QuestionsList = ({ refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     loadQuestions();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadQuestions = async () => {
     try {
