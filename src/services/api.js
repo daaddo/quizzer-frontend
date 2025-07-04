@@ -3,8 +3,13 @@ const getApiBaseUrl = () => {
   // In production build, this will be replaced by docker-entrypoint.sh
   // In development, it uses the standard Vite env variable
   if (import.meta.env.MODE === 'production') {
+    console.log('Production mode');
     return 'VITE_API_BASE_URL_PLACEHOLDER';
+
+  } else {
+    console.log('Development mode');
   }
+  console.log(import.meta.env.VITE_API_BASE_URL);
   return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 };
 
@@ -17,6 +22,7 @@ class QuestionsApi {
   }
 
   async getAllQuestions() {
+    console.log(this.baseUrl);
     try {
       const response = await fetch(`${this.baseUrl}/api/questions`);
       if (!response.ok) {
