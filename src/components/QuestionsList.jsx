@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { questionsApi } from '../services/api';
+import EditQuestionModal from './EditQuestionModal';
 
 const QuestionsList = ({ refreshTrigger }) => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     loadQuestions();
@@ -50,6 +53,29 @@ const QuestionsList = ({ refreshTrigger }) => {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleEditQuestion = (question) => {
+    setEditingQuestion(question);
+    setIsEditModalOpen(true);
+  };
+
+  const handleQuestionUpdated = (updatedData) => {
+    // Aggiorna la domanda nella lista locale
+    setQuestions(prevQuestions => 
+      prevQuestions.map(question => 
+        question.id === updatedData.id 
+          ? { ...question, title: updatedData.title, question: updatedData.question }
+          : question
+      )
+    );
+    setEditingQuestion(null);
+    setIsEditModalOpen(false);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingQuestion(null);
+    setIsEditModalOpen(false);
   };
 
   if (loading) {
@@ -98,6 +124,13 @@ const QuestionsList = ({ refreshTrigger }) => {
                 <div className="question-actions">
                   <span className="question-id">ID: {question.id}</span>
                   <button
+                    onClick={() => handleEditQuestion(question)}
+                    className="btn btn-secondary btn-small"
+                    title="Modifica domanda"
+                  >
+                    ✏️
+                  </button>
+                  <button
                     onClick={() => handleDeleteQuestion(question.id, question.title)}
                     className="btn btn-danger btn-small"
                     disabled={deletingId === question.id}
@@ -145,6 +178,13 @@ const QuestionsList = ({ refreshTrigger }) => {
           ))}
         </div>
       )}
+      
+      <EditQuestionModal
+        question={editingQuestion}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onQuestionUpdated={handleQuestionUpdated}
+      />
     </div>
   );
 };

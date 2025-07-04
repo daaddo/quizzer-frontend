@@ -79,6 +79,27 @@ class QuestionsApi {
     }
   }
 
+  async updateQuestion(questionData) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/questions`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questionData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating question:', error);
+      throw error;
+    }
+  }
+
   async getRandomQuestions(size = 5) {
     try {
       const response = await fetch(`${this.baseUrl}/api/questions/random?size=${size}`);
