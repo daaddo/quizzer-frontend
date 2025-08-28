@@ -4,11 +4,15 @@ Un'applicazione React moderna per la gestione e svolgimento di quiz interattivi.
 
 ## 🚀 Features
 
-- **Dashboard Admin**: Gestione completa delle domande (CRUD)
-- **Sistema Quiz**: Quiz casuali con correzione automatica
-- **API Integration**: Integrazione completa con backend REST
-- **Responsive Design**: Ottimizzato per desktop e mobile
-- **Docker Ready**: Deployment facile con Docker e Docker Compose
+- **🔐 Sistema di Autenticazione**: Login con username/email e gestione sessioni
+- **🍪 Remember Me**: Cookie automatico per sessioni persistenti
+- **🛡️ Route Protette**: Accesso controllato a Admin e Quiz
+- **👤 Gestione Utenti**: Dashboard personalizzata con informazioni utente
+- **📊 Dashboard Admin**: Gestione completa delle domande (CRUD)
+- **🧠 Sistema Quiz**: Quiz casuali con correzione automatica
+- **🔗 API Integration**: Integrazione completa con backend REST autenticato
+- **📱 Responsive Design**: Ottimizzato per desktop e mobile
+- **🐳 Docker Ready**: Deployment facile con Docker e Docker Compose
 
 ## 📋 Prerequisiti
 
@@ -157,12 +161,37 @@ Configura il backend per accettare richieste dall'origine del frontend:
 
 L'applicazione utilizza i seguenti endpoint del backend:
 
+### 🔐 Autenticazione
+- `POST /login` - Effettua login con credenziali (username/email + password)
+- `POST /logout` - Effettua logout e pulizia sessione
+- `GET /api/v1/users/remember-me-status` - Verifica stato autenticazione e cookie
+
+### 📝 Gestione Domande (Richiedono Autenticazione)
 - `GET /api/questions` - Lista tutte le domande
 - `POST /api/questions` - Crea nuova domanda  
+- `PUT /api/questions/{id}` - Aggiorna domanda esistente
 - `DELETE /api/questions/{id}` - Elimina domanda
 - `GET /api/questions/random?size={n}` - Domande casuali per quiz
 
 ### Formato dati API
+
+#### Login (POST /login):
+```json
+{
+  "username": "user@email.com",  // Può essere username o email
+  "password": "password123"
+}
+```
+
+#### Status Autenticazione (GET /api/v1/users/remember-me-status):
+```json
+{
+  "authenticated": true,
+  "username": "user123",
+  "hasRememberMeCookie": true,
+  "message": "User is authenticated"
+}
+```
 
 #### Domanda (GET/POST):
 ```json
@@ -201,12 +230,22 @@ quizzer_frontend/
 │   │   ├── AddQuestionForm.jsx
 │   │   ├── Quiz.jsx
 │   │   ├── QuestionsList.jsx
-│   │   └── Layout.jsx
+│   │   ├── EditQuestionModal.jsx
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   ├── Layout.jsx
+│   │   └── ProtectedRoute.jsx    # 🔐 HOC per route protette
 │   ├── pages/             # Pagine principali
 │   │   ├── Welcome.jsx
-│   │   └── Admin.jsx
+│   │   ├── Admin.jsx
+│   │   └── Login.jsx            # 🔐 Pagina di login
+│   ├── contexts/          # React Context
+│   │   └── AuthContext.jsx      # 🔐 Context autenticazione
+│   ├── hooks/             # Custom Hooks
+│   │   └── useAuth.js           # 🔐 Hook autenticazione
 │   ├── services/          # Servizi API
-│   │   └── api.js
+│   │   ├── api.js               # Client API domande
+│   │   └── auth.js              # 🔐 Client API autenticazione
 │   └── styles/           # CSS styles
 │       └── index.css
 ├── public/               # Asset statici
@@ -219,25 +258,37 @@ quizzer_frontend/
 
 ## 🌟 Features del Sistema
 
-### Admin Dashboard
+### 🔐 Sistema di Autenticazione
+- ✅ Login con username o email
+- ✅ Cookie remember-me automatico
+- ✅ Auto-login alla riapertura dell'app
+- ✅ Protezione route admin e quiz
+- ✅ Logout sicuro con pulizia sessione
+- ✅ Gestione errori di autenticazione
+- ✅ UI condizionale basata su stato auth
+
+### 📊 Dashboard Admin (Protetta)
 - ✅ Visualizzazione lista domande con paginazione
 - ✅ Aggiunta nuove domande con risposte multiple
+- ✅ Modifica domande esistenti con modal
 - ✅ Eliminazione domande con conferma
 - ✅ Refresh automatico dopo operazioni
 - ✅ Gestione errori e stati di loading
 
-### Sistema Quiz  
+### 🧠 Sistema Quiz (Protetto)
 - ✅ Selezione numero domande personalizzabile (1-50)
 - ✅ Domande casuali dal database
 - ✅ Interfaccia intuitiva per risposte
 - ✅ Correzione automatica con dettagli
 - ✅ Punteggio percentuale e analisi risultati
+- ✅ Salvataggio stato durante il quiz
 
-### UI/UX
+### 🎨 UI/UX
 - ✅ Design moderno e responsive
 - ✅ Animazioni e transizioni fluide
 - ✅ Stati di loading e feedback utente
 - ✅ Gestione errori user-friendly
+- ✅ Dashboard personalizzata per utenti autenticati
 - ✅ Accessibilità e usabilità ottimizzate
 
 ## 🔒 Considerazioni di Sicurezza
