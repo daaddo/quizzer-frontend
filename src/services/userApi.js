@@ -173,7 +173,20 @@ class UserApiService {
         })
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
+        // Prova a leggere il corpo della risposta per errori più dettagliati
+        let errorMessage;
+        try {
+          const errorText = await response.text();
+          console.log('❌ Error response body:', errorText);
+          errorMessage = errorText || `Errore API: ${response.status}`;
+        } catch {
+          errorMessage = `Errore API: ${response.status}`;
+        }
+        
         if (response.status === 401) {
           throw new Error('Non autorizzato - effettua nuovamente il login');
         }
@@ -186,11 +199,43 @@ class UserApiService {
         if (response.status === 400) {
           throw new Error('Dati non validi - controlla titolo e domanda');
         }
-        throw new Error(`Errore API: ${response.status}`);
+        throw new Error(errorMessage);
       }
 
-      const updatedQuestion = await response.json();
-      console.log('✅ Question edited successfully:', updatedQuestion);
+      // Prova a parsare JSON, ma gestisci il caso in cui non sia JSON valido
+      let updatedQuestion;
+      const contentType = response.headers.get('content-type');
+      console.log('📋 Response Content-Type:', contentType);
+      
+      // Prima leggi il testo della risposta per vedere cosa c'è
+      const responseText = await response.text();
+      console.log('📄 Raw response body:', responseText);
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          updatedQuestion = JSON.parse(responseText);
+          console.log('✅ Question edited successfully (JSON response):', updatedQuestion);
+        } catch (jsonError) {
+          console.warn('⚠️ Response claims to be JSON but is not valid:', jsonError.message);
+          console.warn('⚠️ Response body was:', responseText);
+          // Se la risposta non è JSON valido ma la richiesta è andata a buon fine,
+          // restituisci i dati originali aggiornati
+          updatedQuestion = {
+            id: questionData.id,
+            title: questionData.title,
+            question: questionData.question
+          };
+        }
+      } else {
+        // Se la risposta non è JSON, ma lo status è OK, considera l'operazione riuscita
+        console.log('✅ Question edited successfully (non-JSON response)');
+        console.log('📄 Response body was:', responseText);
+        updatedQuestion = {
+          id: questionData.id,
+          title: questionData.title,
+          question: questionData.question
+        };
+      }
       
       return updatedQuestion;
     } catch (error) {
