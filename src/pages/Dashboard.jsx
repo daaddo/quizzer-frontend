@@ -42,10 +42,11 @@ const Dashboard = () => {
     loadUserData();
   }, [isAuthenticated]);
 
-  // Handler per click su quiz
+  // Handler per click su quiz - naviga alla pagina del quiz
   const handleQuizClick = (quizId, quiz) => {
-    console.log('Quiz clicked:', quizId, quiz);
-    // TODO: Implementare navigazione al quiz o modal dettagli
+    console.log('Navigating to quiz:', quizId, quiz);
+    // Naviga alla pagina del quiz
+    window.location.href = `/quiz/${quizId}`;
   };
 
   // Loading state

@@ -84,6 +84,120 @@ class UserApiService {
       throw error;
     }
   }
+
+  /**
+   * Ottiene tutte le domande di un quiz specifico
+   * @param {number} quizId - ID del quiz
+   * @returns {Promise<Array>} Lista delle domande con risposte
+   */
+  async getQuizQuestions(quizId) {
+    try {
+      console.log(`🔍 Fetching questions for quiz ${quizId}...`);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/questions/${quizId}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const questions = await response.json();
+      console.log('✅ Quiz questions response:', questions);
+      
+      // La risposta dovrebbe essere un array di GetQuestionDto
+      return questions || [];
+    } catch (error) {
+      console.error('❌ Error fetching quiz questions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Elimina una domanda specifica
+   * @param {number} questionId - ID della domanda da eliminare
+   * @returns {Promise<void>}
+   */
+  async deleteQuestion(questionId) {
+    try {
+      console.log(`🗑️ Deleting question ${questionId}...`);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/questions/${questionId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Domanda non trovata');
+        }
+        if (response.status === 403) {
+          throw new Error('Non hai i permessi per eliminare questa domanda');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      console.log('✅ Question deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting question:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Modifica una domanda specifica (titolo e testo)
+   * @param {Object} questionData - Dati della domanda { id, title, question }
+   * @returns {Promise<Object>} Domanda aggiornata
+   */
+  async editQuestion(questionData) {
+    try {
+      console.log(`✏️ Editing question ${questionData.id}...`, questionData);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/questions`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          id: questionData.id,
+          title: questionData.title,
+          question: questionData.question
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Domanda non trovata');
+        }
+        if (response.status === 403) {
+          throw new Error('Non hai i permessi per modificare questa domanda');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi - controlla titolo e domanda');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const updatedQuestion = await response.json();
+      console.log('✅ Question edited successfully:', updatedQuestion);
+      
+      return updatedQuestion;
+    } catch (error) {
+      console.error('❌ Error editing question:', error);
+      throw error;
+    }
+  }
 }
 
 // Esporta istanza singleton
