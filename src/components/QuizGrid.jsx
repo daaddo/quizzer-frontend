@@ -4,7 +4,7 @@ import QuizCard from './QuizCard';
 /**
  * Componente grid per visualizzare la lista dei quiz
  */
-const QuizGrid = ({ quizzes, loading, onQuizClick }) => {
+const QuizGrid = ({ quizzes, loading, onQuizClick, onCreateQuiz, onEditQuiz, onDeleteQuiz }) => {
   if (loading) {
     return (
       <div className="quiz-grid-loading">
@@ -22,23 +22,52 @@ const QuizGrid = ({ quizzes, loading, onQuizClick }) => {
 
   if (quizzesArray.length === 0) {
     return (
-      <div className="quiz-grid-empty">
-        <div className="empty-icon">📚</div>
-        <h3>Nessun Quiz Trovato</h3>
-        <p>Non hai ancora creato nessun quiz. I tuoi quiz appariranno qui una volta creati.</p>
+      <div className="quiz-grid">
+        <div className="quiz-section-header">
+          <h2 className="quiz-section-title">I Tuoi Quiz</h2>
+          <button 
+            className="btn btn-primary create-quiz-btn"
+            onClick={onCreateQuiz}
+            title="Crea nuovo quiz"
+          >
+            Nuovo Quiz
+          </button>
+        </div>
+        <div className="quiz-grid-empty">
+          <div className="empty-icon">📚</div>
+          <h3>Nessun Quiz Trovato</h3>
+          <p>Non hai ancora creato nessun quiz. Inizia creando il tuo primo quiz!</p>
+          <button 
+            className="btn btn-primary btn-large"
+            onClick={onCreateQuiz}
+          >
+            Crea il Primo Quiz
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="quiz-grid">
-      <h2 className="quiz-section-title">🧠 I Tuoi Quiz</h2>
+      <div className="quiz-section-header">
+        <h2 className="quiz-section-title">I Tuoi Quiz</h2>
+        <button 
+          className="btn btn-primary create-quiz-btn"
+          onClick={onCreateQuiz}
+          title="Crea nuovo quiz"
+        >
+          Nuovo Quiz
+        </button>
+      </div>
       <div className="quiz-cards-container">
         {quizzesArray.map((quiz) => (
           <QuizCard 
             key={quiz.id} 
             quiz={quiz} 
             onQuizClick={onQuizClick}
+            onEditQuiz={onEditQuiz}
+            onDeleteQuiz={onDeleteQuiz}
           />
         ))}
       </div>

@@ -4,10 +4,24 @@ import React from 'react';
  * Componente card per visualizzare un singolo quiz
  * Struttura quiz: { id, title, description, questionCount }
  */
-const QuizCard = ({ quiz, onQuizClick }) => {
+const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz }) => {
   const handleClick = () => {
     if (onQuizClick) {
       onQuizClick(quiz.id, quiz);
+    }
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    if (onEditQuiz) {
+      onEditQuiz(quiz);
+    }
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (onDeleteQuiz) {
+      onDeleteQuiz(quiz);
     }
   };
 
@@ -31,9 +45,25 @@ const QuizCard = ({ quiz, onQuizClick }) => {
       </div>
       
       <div className="quiz-card-footer">
-        <button className="quiz-action-btn">
-          🎯 Visualizza Quiz
-        </button>
+        <div className="quiz-actions">
+          <button className="quiz-action-btn primary" title="Visualizza Quiz">
+            Visualizza
+          </button>
+          <button 
+            className="quiz-action-btn secondary"
+            onClick={handleEdit}
+            title="Modifica Quiz"
+          >
+            Modifica
+          </button>
+          <button 
+            className="quiz-action-btn danger"
+            onClick={handleDelete}
+            title="Elimina Quiz"
+          >
+            Elimina
+          </button>
+        </div>
       </div>
     </div>
   );

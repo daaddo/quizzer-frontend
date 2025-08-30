@@ -155,6 +155,166 @@ class UserApiService {
   }
 
   /**
+   * Aggiorna un quiz esistente (titolo e descrizione)
+   * @param {Object} quizData - Dati del quiz { id, title, description }
+   * @returns {Promise<Object>} Quiz aggiornato
+   */
+  async updateQuiz(quizData) {
+    try {
+      console.log('Updating quiz:', quizData);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          id: quizData.id,
+          title: quizData.title,
+          description: quizData.description
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato');
+        }
+        if (response.status === 403) {
+          throw new Error('Non hai i permessi per modificare questo quiz');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi - controlla titolo e descrizione');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      // Gestisci la risposta che potrebbe non essere JSON
+      let updatedQuiz;
+      const contentType = response.headers.get('content-type');
+      console.log('Response Content-Type:', contentType);
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          updatedQuiz = await response.json();
+          console.log('Quiz updated successfully (JSON response):', updatedQuiz);
+        } catch (jsonError) {
+          console.warn('Response claims to be JSON but is not valid:', jsonError.message);
+          // Se la risposta non è JSON valido ma la richiesta è andata a buon fine,
+          // restituisci i dati originali aggiornati
+          updatedQuiz = {
+            id: quizData.id,
+            title: quizData.title,
+            description: quizData.description
+          };
+        }
+      } else {
+        // Se la risposta non è JSON, ma lo status è OK, considera l'operazione riuscita
+        console.log('Quiz updated successfully (non-JSON response)');
+        updatedQuiz = {
+          id: quizData.id,
+          title: quizData.title,
+          description: quizData.description
+        };
+      }
+      
+      return updatedQuiz;
+    } catch (error) {
+      console.error('Error updating quiz:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Crea un nuovo quiz
+   * @param {Object} quizData - Dati del quiz { title, description }
+   * @returns {Promise<Object>} Quiz creato con ID
+   */
+  async createQuiz(quizData) {
+    try {
+      console.log('Creating new quiz:', quizData);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          title: quizData.title,
+          description: quizData.description
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi - controlla titolo e descrizione');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      // Gestisci la risposta che potrebbe non essere JSON
+      let createdQuizId;
+      const contentType = response.headers.get('content-type');
+      console.log('Create Response Content-Type:', contentType);
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          createdQuizId = await response.json();
+          console.log('Quiz created successfully with ID (JSON response):', createdQuizId);
+        } catch (jsonError) {
+          console.error('Failed to parse JSON response for quiz creation:', jsonError.message);
+          throw new Error('Errore nella risposta del server durante la creazione del quiz');
+        }
+      } else {
+        // Per la creazione, abbiamo bisogno dell'ID, quindi non possiamo procedere senza JSON
+        const responseText = await response.text();
+        console.log('Non-JSON response body:', responseText);
+        throw new Error('Il server non ha restituito un ID valido per il quiz creato');
+      }
+      
+      return { id: createdQuizId, ...quizData };
+    } catch (error) {
+      console.error('Error creating quiz:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Elimina un quiz esistente
+   * @param {number} quizId - ID del quiz da eliminare
+   * @returns {Promise<void>}
+   */
+  async deleteQuiz(quizId) {
+    try {
+      console.log(`Deleting quiz ${quizId}...`);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes/${quizId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato');
+        }
+        if (response.status === 403) {
+          throw new Error('Non hai i permessi per eliminare questo quiz');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      console.log('Quiz deleted successfully');
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Modifica una domanda specifica (titolo e testo)
    * @param {Object} questionData - Dati della domanda { id, title, question }
    * @returns {Promise<Object>} Domanda aggiornata

@@ -3,6 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { userApi } from '../services/userApi';
 import UserProfile from '../components/UserProfile';
 import QuizGrid from '../components/QuizGrid';
+import EditQuizModal from '../components/EditQuizModal';
+import CreateQuizModal from '../components/CreateQuizModal';
+import DeleteQuizModal from '../components/DeleteQuizModal';
 import '../components/dashboard.css';
 
 /**
@@ -13,6 +16,12 @@ const Dashboard = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Stati per gestione modali
+  const [editQuizModal, setEditQuizModal] = useState({ isOpen: false, quiz: null });
+  const [createQuizModal, setCreateQuizModal] = useState({ isOpen: false });
+  const [deleteQuizModal, setDeleteQuizModal] = useState({ isOpen: false, quiz: null });
+  const [modalLoading, setModalLoading] = useState(false);
 
   // Carica i dati completi dell'utente
   useEffect(() => {
@@ -47,6 +56,111 @@ const Dashboard = () => {
     console.log('Navigating to quiz:', quizId, quiz);
     // Naviga alla pagina del quiz
     window.location.href = `/quiz/${quizId}`;
+  };
+
+  // Handler per aprire modal di creazione quiz
+  const handleCreateQuiz = () => {
+    setCreateQuizModal({ isOpen: true });
+  };
+
+  // Handler per aprire modal di modifica quiz
+  const handleEditQuiz = (quiz) => {
+    setEditQuizModal({ isOpen: true, quiz });
+  };
+
+  // Handler per aprire modal di eliminazione quiz
+  const handleDeleteQuiz = (quiz) => {
+    setDeleteQuizModal({ isOpen: true, quiz });
+  };
+
+  // Handler per confermare eliminazione quiz
+  const handleConfirmDeleteQuiz = async () => {
+    if (!deleteQuizModal.quiz) return;
+
+    try {
+      setModalLoading(true);
+      await userApi.deleteQuiz(deleteQuizModal.quiz.id);
+      
+      // Aggiorna la lista rimuovendo il quiz eliminato
+      setUserInfo(prevInfo => ({
+        ...prevInfo,
+        quizzes: prevInfo.quizzes.filter(q => q.id !== deleteQuizModal.quiz.id)
+      }));
+
+      // Chiudi il modal
+      setDeleteQuizModal({ isOpen: false, quiz: null });
+      console.log('Quiz eliminato con successo');
+    } catch (error) {
+      console.error('Errore nell\'eliminazione del quiz:', error);
+      alert(`Errore nell'eliminazione del quiz: ${error.message}`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Handler per salvare nuovo quiz
+  const handleSaveNewQuiz = async (quizData) => {
+    try {
+      setModalLoading(true);
+      const createdQuiz = await userApi.createQuiz(quizData);
+      
+      // Aggiorna la lista aggiungendo il nuovo quiz
+      setUserInfo(prevInfo => ({
+        ...prevInfo,
+        quizzes: [...(prevInfo.quizzes || []), { ...createdQuiz, questionCount: 0 }]
+      }));
+
+      // Chiudi il modal
+      setCreateQuizModal({ isOpen: false });
+      console.log('Quiz creato con successo:', createdQuiz);
+    } catch (error) {
+      console.error('Errore nella creazione del quiz:', error);
+      alert(`Errore nella creazione del quiz: ${error.message}`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Handler per salvare modifiche quiz
+  const handleSaveEditQuiz = async (quizData) => {
+    try {
+      setModalLoading(true);
+      const updatedQuiz = await userApi.updateQuiz(quizData);
+      
+      // Aggiorna la lista quiz
+      setUserInfo(prevInfo => ({
+        ...prevInfo,
+        quizzes: prevInfo.quizzes.map(q => 
+          q.id === updatedQuiz.id 
+            ? { ...q, ...updatedQuiz }
+            : q
+        )
+      }));
+
+      // Chiudi il modal
+      setEditQuizModal({ isOpen: false, quiz: null });
+      console.log('Quiz aggiornato con successo:', updatedQuiz);
+    } catch (error) {
+      console.error('Errore nell\'aggiornamento del quiz:', error);
+      alert(`Errore nell'aggiornamento del quiz: ${error.message}`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Handler per annullare modifica quiz
+  const handleCancelEditQuiz = () => {
+    setEditQuizModal({ isOpen: false, quiz: null });
+  };
+
+  // Handler per annullare creazione quiz
+  const handleCancelCreateQuiz = () => {
+    setCreateQuizModal({ isOpen: false });
+  };
+
+  // Handler per annullare eliminazione quiz
+  const handleCancelDeleteQuiz = () => {
+    setDeleteQuizModal({ isOpen: false, quiz: null });
   };
 
   // Loading state
@@ -141,8 +255,35 @@ const Dashboard = () => {
           quizzes={userInfo?.quizzes || []} 
           loading={loading} 
           onQuizClick={handleQuizClick}
+          onCreateQuiz={handleCreateQuiz}
+          onEditQuiz={handleEditQuiz}
+          onDeleteQuiz={handleDeleteQuiz}
         />
       </div>
+
+      {/* Modali */}
+      <CreateQuizModal
+        isOpen={createQuizModal.isOpen}
+        onSave={handleSaveNewQuiz}
+        onCancel={handleCancelCreateQuiz}
+        loading={modalLoading}
+      />
+
+      <EditQuizModal
+        quiz={editQuizModal.quiz}
+        isOpen={editQuizModal.isOpen}
+        onSave={handleSaveEditQuiz}
+        onCancel={handleCancelEditQuiz}
+        loading={modalLoading}
+      />
+
+      <DeleteQuizModal
+        quiz={deleteQuizModal.quiz}
+        isOpen={deleteQuizModal.isOpen}
+        onConfirm={handleConfirmDeleteQuiz}
+        onCancel={handleCancelDeleteQuiz}
+        loading={modalLoading}
+      />
     </div>
   );
 };
