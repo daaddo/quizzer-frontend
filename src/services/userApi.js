@@ -315,6 +315,49 @@ class UserApiService {
   }
 
   /**
+   * Ottiene domande casuali per un test
+   * @param {number} quizId - ID del quiz
+   * @param {number} size - Numero di domande da ottenere (5-150)
+   * @returns {Promise<Array>} Lista domande casuali per il test
+   */
+  async getRandomQuestions(quizId, size) {
+    try {
+      console.log(`Fetching ${size} random questions for quiz ${quizId}...`);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/questions/random?size=${size}&quizId=${quizId}`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato o senza domande');
+        }
+        if (response.status === 400) {
+          throw new Error('Parametri non validi - controlla quizId e size');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const questions = await response.json();
+      console.log('Random questions loaded successfully:', questions);
+      
+      // Validate response structure
+      if (!Array.isArray(questions)) {
+        throw new Error('Formato risposta non valido dal server');
+      }
+      
+      return questions;
+    } catch (error) {
+      console.error('Error fetching random questions:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Crea una nuova domanda per un quiz
    * @param {Object} questionData - Dati della domanda { title, question, quizId, answers }
    * @returns {Promise<Object>} Domanda creata

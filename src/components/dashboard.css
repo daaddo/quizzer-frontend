@@ -478,6 +478,21 @@
   color: #9b2c2c;
 }
 
+.quiz-action-btn.success {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.quiz-action-btn.success:hover {
+  background: #9ae6b4;
+  color: #1a202c;
+}
+
+.quiz-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ===== MODAL STYLES ===== */
 .modal-overlay {
   position: fixed;

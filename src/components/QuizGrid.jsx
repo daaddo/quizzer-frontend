@@ -4,7 +4,7 @@ import QuizCard from './QuizCard';
 /**
  * Componente grid per visualizzare la lista dei quiz
  */
-const QuizGrid = ({ quizzes, loading, onQuizClick, onCreateQuiz, onEditQuiz, onDeleteQuiz }) => {
+const QuizGrid = ({ quizzes, loading, onQuizClick, onCreateQuiz, onEditQuiz, onDeleteQuiz, onStartTest }) => {
   if (loading) {
     return (
       <div className="quiz-grid-loading">
@@ -68,6 +68,7 @@ const QuizGrid = ({ quizzes, loading, onQuizClick, onCreateQuiz, onEditQuiz, onD
             onQuizClick={onQuizClick}
             onEditQuiz={onEditQuiz}
             onDeleteQuiz={onDeleteQuiz}
+            onStartTest={onStartTest}
           />
         ))}
       </div>

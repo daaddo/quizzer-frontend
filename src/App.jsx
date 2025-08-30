@@ -7,6 +7,8 @@ import Welcome from './pages/Welcome'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import QuizDetails from './pages/QuizDetails'
+import TestExecution from './pages/TestExecution'
+import TestResults from './pages/TestResults'
 
 function App() {
   return (
@@ -29,6 +31,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <QuizDetails />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/test/:quizId" 
+              element={
+                <ProtectedRoute>
+                  <TestExecution />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/test/:quizId/results" 
+              element={
+                <ProtectedRoute>
+                  <TestResults />
                 </ProtectedRoute>
               } 
             />

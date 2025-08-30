@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import UserProfile from '../components/UserProfile';
 import QuizGrid from '../components/QuizGrid';
 import EditQuizModal from '../components/EditQuizModal';
 import CreateQuizModal from '../components/CreateQuizModal';
 import DeleteQuizModal from '../components/DeleteQuizModal';
+import TestConfigModal from '../components/TestConfigModal';
 import '../components/dashboard.css';
 
 /**
@@ -13,6 +15,7 @@ import '../components/dashboard.css';
  */
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,6 +24,7 @@ const Dashboard = () => {
   const [editQuizModal, setEditQuizModal] = useState({ isOpen: false, quiz: null });
   const [createQuizModal, setCreateQuizModal] = useState({ isOpen: false });
   const [deleteQuizModal, setDeleteQuizModal] = useState({ isOpen: false, quiz: null });
+  const [testConfigModal, setTestConfigModal] = useState({ isOpen: false, quiz: null });
   const [modalLoading, setModalLoading] = useState(false);
 
   // Carica i dati completi dell'utente
@@ -163,6 +167,30 @@ const Dashboard = () => {
     setDeleteQuizModal({ isOpen: false, quiz: null });
   };
 
+  // Handler per aprire configurazione test
+  const handleStartTest = (quiz) => {
+    setTestConfigModal({ isOpen: true, quiz });
+  };
+
+  // Handler per avviare test con configurazione
+  const handleStartTestWithConfig = (questionCount) => {
+    const quiz = testConfigModal.quiz;
+    setTestConfigModal({ isOpen: false, quiz: null });
+    
+    // Naviga alla pagina di esecuzione test
+    navigate(`/test/${quiz.id}`, {
+      state: {
+        questionCount,
+        quizTitle: quiz.title
+      }
+    });
+  };
+
+  // Handler per annullare configurazione test
+  const handleCancelTestConfig = () => {
+    setTestConfigModal({ isOpen: false, quiz: null });
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -258,6 +286,7 @@ const Dashboard = () => {
           onCreateQuiz={handleCreateQuiz}
           onEditQuiz={handleEditQuiz}
           onDeleteQuiz={handleDeleteQuiz}
+          onStartTest={handleStartTest}
         />
       </div>
 
@@ -282,6 +311,14 @@ const Dashboard = () => {
         isOpen={deleteQuizModal.isOpen}
         onConfirm={handleConfirmDeleteQuiz}
         onCancel={handleCancelDeleteQuiz}
+        loading={modalLoading}
+      />
+
+      <TestConfigModal
+        quiz={testConfigModal.quiz}
+        isOpen={testConfigModal.isOpen}
+        onStart={handleStartTestWithConfig}
+        onCancel={handleCancelTestConfig}
         loading={modalLoading}
       />
     </div>
