@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import Question from '../components/Question';
 import EditQuestionModal from '../components/EditQuestionModal';
+import CreateQuestionModal from '../components/CreateQuestionModal';
 import '../styles/quiz-details.css';
 
 /**
@@ -16,10 +17,12 @@ const QuizDetails = () => {
   const [error, setError] = useState(null);
   const [quizTitle, setQuizTitle] = useState('');
   
-  // Stati per il modal di modifica
+  // Stati per i modali
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
 
   // Carica le domande del quiz
   useEffect(() => {
@@ -136,6 +139,53 @@ const QuizDetails = () => {
     setEditingQuestion(null);
   };
 
+  // Handler per aprire modal di creazione domanda
+  const handleCreateQuestion = () => {
+    setCreateModalOpen(true);
+  };
+
+  // Handler per salvare nuova domanda
+  const handleSaveNewQuestion = async (questionData) => {
+    try {
+      setCreateLoading(true);
+      
+      console.log('Creating new question:', questionData);
+      
+      // Chiamata API per creare la domanda
+      const createdQuestion = await userApi.createQuestion(questionData);
+      
+      // Costruisci l'oggetto domanda completo per l'UI
+      const questionForUI = {
+        id: createdQuestion.id || Date.now(), // Usa l'ID dal server o temporaneo
+        title: questionData.title,
+        question: questionData.question,
+        answers: questionData.answers.map((answer, index) => ({
+          id: (createdQuestion.id || Date.now()) + index, // ID temporaneo per le risposte
+          answer: answer.answer,
+          correct: answer.correct
+        }))
+      };
+      
+      // Aggiungi la domanda alla lista locale con struttura completa
+      setQuestions(prevQuestions => [...prevQuestions, questionForUI]);
+      
+      // Chiudi il modal
+      setCreateModalOpen(false);
+      console.log('Question created successfully and added to UI');
+      
+    } catch (error) {
+      console.error('Error creating question:', error);
+      alert(`Errore nella creazione della domanda: ${error.message}`);
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  // Handler per annullare la creazione
+  const handleCancelCreate = () => {
+    setCreateModalOpen(false);
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -185,17 +235,58 @@ const QuizDetails = () => {
     return (
       <div className="quiz-details-empty">
         <div className="container">
+          <div className="quiz-header">
+            <button 
+              onClick={handleBackToDashboard}
+              className="back-button"
+            >
+              ← Dashboard
+            </button>
+            <div className="quiz-info">
+              <h1 className="quiz-title">{quizTitle}</h1>
+              <div className="quiz-stats">
+                <span className="stat-item">
+                  📝 0 domande
+                </span>
+              </div>
+            </div>
+            <button 
+              onClick={handleCreateQuestion}
+              className="btn btn-primary create-question-btn"
+              title="Crea nuova domanda"
+            >
+              Nuova Domanda
+            </button>
+          </div>
+          
           <div className="empty-content">
             <div className="empty-icon">📝</div>
             <h2>Nessuna Domanda Trovata</h2>
-            <p>Questo quiz non contiene ancora domande.</p>
-            <button 
-              onClick={handleBackToDashboard}
-              className="btn btn-primary"
-            >
-              ← Torna alla Dashboard
-            </button>
+            <p>Questo quiz non contiene ancora domande. Inizia creando la prima domanda!</p>
+            <div className="empty-actions">
+              <button 
+                onClick={handleCreateQuestion}
+                className="btn btn-primary btn-large"
+              >
+                Crea Prima Domanda
+              </button>
+              <button 
+                onClick={handleBackToDashboard}
+                className="btn btn-secondary"
+              >
+                ← Torna alla Dashboard
+              </button>
+            </div>
           </div>
+          
+          {/* Modal per creare domanda */}
+          <CreateQuestionModal
+            isOpen={createModalOpen}
+            quizId={parseInt(quizId)}
+            onSave={handleSaveNewQuestion}
+            onCancel={handleCancelCreate}
+            loading={createLoading}
+          />
         </div>
       </div>
     );
@@ -220,6 +311,13 @@ const QuizDetails = () => {
               </span>
             </div>
           </div>
+          <button 
+            onClick={handleCreateQuestion}
+            className="btn btn-primary create-question-btn"
+            title="Crea nuova domanda"
+          >
+            Nuova Domanda
+          </button>
         </div>
 
         {/* Lista delle domande */}
@@ -253,6 +351,15 @@ const QuizDetails = () => {
         onSave={handleSaveQuestion}
         onCancel={handleCancelEdit}
         loading={editLoading}
+      />
+
+      {/* Modal per creare domanda */}
+      <CreateQuestionModal
+        isOpen={createModalOpen}
+        quizId={parseInt(quizId)}
+        onSave={handleSaveNewQuestion}
+        onCancel={handleCancelCreate}
+        loading={createLoading}
       />
     </div>
   );

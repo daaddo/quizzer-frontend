@@ -315,21 +315,110 @@ class UserApiService {
   }
 
   /**
+   * Crea una nuova domanda per un quiz
+   * @param {Object} questionData - Dati della domanda { title, question, quizId, answers }
+   * @returns {Promise<Object>} Domanda creata
+   */
+  async createQuestion(questionData) {
+    try {
+      console.log('Creating new question:', questionData);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/questions`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          title: questionData.title || null,
+          question: questionData.question,
+          quizId: questionData.quizId,
+          answers: questionData.answers
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi - controlla domanda e risposte');
+        }
+        if (response.status === 403) {
+          throw new Error('Non hai i permessi per aggiungere domande a questo quiz');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      // Gestisci la risposta che potrebbe non essere JSON
+      let createdQuestion;
+      const contentType = response.headers.get('content-type');
+      console.log('Create Question Response Content-Type:', contentType);
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          const serverResponse = await response.json();
+          console.log('Question created successfully (JSON response):', serverResponse);
+          
+          // Costruisci l'oggetto risposta con struttura consistente
+          createdQuestion = {
+            id: serverResponse.id || serverResponse || Date.now(), // ID dal server
+            title: questionData.title,
+            question: questionData.question,
+            answers: questionData.answers
+          };
+        } catch (jsonError) {
+          console.warn('Response claims to be JSON but is not valid:', jsonError.message);
+          // Se la risposta non è JSON valido ma la richiesta è andata a buon fine,
+          // restituisci i dati originali con un ID simulato
+          createdQuestion = {
+            id: Date.now(), // ID temporaneo
+            title: questionData.title,
+            question: questionData.question,
+            answers: questionData.answers
+          };
+        }
+      } else {
+        // Se la risposta non è JSON, ma lo status è OK, considera l'operazione riuscita
+        console.log('Question created successfully (non-JSON response)');
+        const responseText = await response.text();
+        console.log('Response body:', responseText);
+        
+        // Prova a estrarre un ID numerico dalla risposta testuale
+        const possibleId = responseText ? parseInt(responseText.trim()) : null;
+        
+        createdQuestion = {
+          id: possibleId || Date.now(), // ID dal testo o temporaneo
+          title: questionData.title,
+          question: questionData.question,
+          answers: questionData.answers
+        };
+      }
+      
+      return createdQuestion;
+    } catch (error) {
+      console.error('Error creating question:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Modifica una domanda specifica (titolo e testo)
    * @param {Object} questionData - Dati della domanda { id, title, question }
    * @returns {Promise<Object>} Domanda aggiornata
    */
   async editQuestion(questionData) {
     try {
-      console.log(`✏️ Editing question ${questionData.id}...`, questionData);
+      console.log('Editing question:', questionData);
       
+      // PUT /api/v1/questions con PutQuestionDTO nel body
       const response = await fetch(`${this.baseUrl}/api/v1/questions`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          id: questionData.id,
-          title: questionData.title,
-          question: questionData.question
+          id: questionData.id,           // Integer - ID della domanda (obbligatorio)
+          title: questionData.title,     // String - Titolo della domanda
+          question: questionData.question // String - Testo della domanda
         })
       });
 
