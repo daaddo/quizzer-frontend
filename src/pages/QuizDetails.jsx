@@ -225,6 +225,11 @@ const QuizDetails = () => {
     });
   };
 
+  // Handler per resettare il controllo globale quando un pulsante individuale viene usato
+  const handleOverrideGlobal = () => {
+    setShowAllAnswers(null);
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -425,7 +430,8 @@ const QuizDetails = () => {
                   questionNumber={index + 1}
                   onDeleteQuestion={handleDeleteQuestion}
                   onEditQuestion={handleEditQuestion}
-                  showAnswers={showAllAnswers}
+                  globalShowAnswers={showAllAnswers}
+                  onOverrideGlobal={handleOverrideGlobal}
                 />
               ))}
             </div>

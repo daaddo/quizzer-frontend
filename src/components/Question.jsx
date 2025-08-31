@@ -5,15 +5,15 @@ import Answer from './Answer';
  * Componente per visualizzare una singola domanda con le sue risposte
  * Struttura domanda: { id, title, question, answers: [{ id, answer, correct }] }
  */
-const Question = ({ question, questionNumber, onDeleteQuestion, onEditQuestion, showAnswers: globalShowAnswers }) => {
+const Question = ({ question, questionNumber, onDeleteQuestion, onEditQuestion, globalShowAnswers, onOverrideGlobal }) => {
   const [localShowAnswers, setLocalShowAnswers] = useState(false);
   
   if (!question) {
     return null;
   }
 
-  // Determina se mostrare le risposte (globale ha precedenza)
-  const shouldShowAnswers = globalShowAnswers !== undefined ? globalShowAnswers : localShowAnswers;
+  // Combina controllo globale e locale: globale ha precedenza quando attivo, ma pulsanti restano abilitati
+  const shouldShowAnswers = globalShowAnswers !== null ? globalShowAnswers : localShowAnswers;
 
   // Handler per eliminare la domanda
   const handleDeleteClick = () => {
@@ -31,6 +31,10 @@ const Question = ({ question, questionNumber, onDeleteQuestion, onEditQuestion, 
 
   // Handler per toggle visibilità risposte locali
   const handleToggleAnswers = () => {
+    // Se c'è un controllo globale attivo, lo disattiva prima di agire localmente
+    if (globalShowAnswers !== null && onOverrideGlobal) {
+      onOverrideGlobal(); // Resetta il controllo globale a null
+    }
     setLocalShowAnswers(!localShowAnswers);
   };
 
@@ -50,9 +54,11 @@ const Question = ({ question, questionNumber, onDeleteQuestion, onEditQuestion, 
         <div className="question-actions">
           <button 
             onClick={handleToggleAnswers}
-            className={`spoiler-btn ${globalShowAnswers !== undefined ? 'disabled' : ''}`}
-            title={globalShowAnswers !== undefined ? 'Usa il pulsante globale per mostrare/nascondere' : (shouldShowAnswers ? 'Nascondi risposte' : 'Mostra risposte')}
-            disabled={globalShowAnswers !== undefined}
+            className="spoiler-btn"
+            title={globalShowAnswers !== null ? 
+              `${shouldShowAnswers ? 'Nascondi' : 'Mostra'} risposte (sovrascrive controllo globale)` : 
+              (shouldShowAnswers ? 'Nascondi risposte' : 'Mostra risposte')
+            }
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -105,7 +111,7 @@ const Question = ({ question, questionNumber, onDeleteQuestion, onEditQuestion, 
             </div>
           ) : (
             <div className="answers-hidden">
-              <p>👁️ Clicca "Mostra" per visualizzare le risposte</p>
+              <p>Clicca "Mostra" per visualizzare le risposte</p>
             </div>
           )}
         </div>
