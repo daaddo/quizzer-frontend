@@ -334,39 +334,20 @@ const QuizDetails = () => {
   return (
     <div className="quiz-details">
       <div className="container">
-        {/* Header del quiz */}
-        <div className="quiz-header">
-          <button 
-            onClick={handleBackToDashboard}
-            className="back-button"
-          >
-            ← Dashboard
-          </button>
-          <div className="quiz-info">
-            <h1 className="quiz-title">{quizInfo?.title || `Quiz ${quizId}`}</h1>
-            <div className="quiz-stats">
-              <span className="stat-item">
-                📝 {questions.length} domande
-              </span>
-            </div>
-          </div>
-          <button 
-            onClick={handleCreateQuestion}
-            className="btn btn-primary create-question-btn"
-            title="Crea nuova domanda"
-          >
-            Nuova Domanda
-          </button>
-        </div>
-
         {/* Layout con sidebar */}
         <div className="quiz-content-layout">
-          {/* Sidebar sinistra - Informazioni quiz */}
+          {/* Sidebar sinistra - Tutte le informazioni quiz */}
           {quizInfo && (
             <div className="quiz-sidebar">
               <div className="quiz-info-card">
                 <div className="quiz-info-header">
-                  <h2>Informazioni Quiz</h2>
+                  <h1 className="quiz-main-title">{quizInfo?.title || `Quiz ${quizId}`}</h1>
+                  <button 
+                    onClick={handleBackToDashboard}
+                    className="back-button-sidebar"
+                  >
+                    ← Dashboard
+                  </button>
                 </div>
                 
                 <div className="quiz-info-content">
@@ -387,15 +368,7 @@ const QuizDetails = () => {
                       <span className="stat-icon">📝</span>
                       <div className="stat-info">
                         <span className="stat-number">{questions.length}</span>
-                        <span className="stat-label">Domande</span>
-                      </div>
-                    </div>
-                    
-                    <div className="sidebar-stat">
-                      <span className="stat-icon">🎯</span>
-                      <div className="stat-info">
-                        <span className="stat-number">{questions.length >= 5 ? 'Pronto' : 'Non pronto'}</span>
-                        <span className="stat-label">Stato test</span>
+                        <span className="stat-label">Domande totali</span>
                       </div>
                     </div>
                   </div>
@@ -408,6 +381,14 @@ const QuizDetails = () => {
                       title={questions.length < 5 ? 'Servono almeno 5 domande per iniziare un test' : 'Inizia test per questo quiz'}
                     >
                       🚀 Inizia Test
+                    </button>
+                    
+                    <button 
+                      onClick={handleCreateQuestion}
+                      className="btn btn-secondary btn-create-question"
+                      title="Crea nuova domanda"
+                    >
+                      ➕ Nuova Domanda
                     </button>
                   </div>
                 </div>
