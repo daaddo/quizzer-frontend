@@ -874,6 +874,27 @@ body {
   background: #f9fafb;
   border-radius: 6px;
   border-left: 3px solid #6366f1;
+  max-height: calc(0.9rem * 1.5 * 6); /* 6 righe basate su line-height 1.5 */
+  overflow-y: auto;
+  word-break: break-word;
+}
+
+/* Scrollbar sottile per descrizioni quiz */
+.quiz-description-text::-webkit-scrollbar {
+  width: 3px;
+}
+
+.quiz-description-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.quiz-description-text::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+.quiz-description-text::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
 }
 
 .quiz-description-empty {
@@ -1084,6 +1105,27 @@ body {
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.5rem;
+  max-height: calc(1rem * 1.4 * 5); /* 5 righe basate su line-height 1.4 */
+  overflow-y: auto;
+  line-height: 1.4;
+}
+
+/* Scrollbar sottile per titoli domande */
+.question-title::-webkit-scrollbar {
+  width: 3px;
+}
+
+.question-title::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.question-title::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+.question-title::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
 }
 
 .question-actions {
