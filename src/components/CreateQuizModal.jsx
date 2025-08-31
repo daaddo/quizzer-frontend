@@ -117,7 +117,7 @@ const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
                 className={`form-input ${errors.title ? 'error' : ''}`}
                 placeholder="Inserisci il titolo del quiz..."
                 disabled={loading}
-                maxLength={200}
+                maxLength={599}
                 autoFocus
               />
               {errors.title && (
@@ -139,13 +139,13 @@ const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
                 placeholder="Inserisci una descrizione del quiz..."
                 disabled={loading}
                 rows={4}
-                maxLength={500}
+                maxLength={1199}
               />
               {errors.description && (
                 <div className="form-error">{errors.description}</div>
               )}
               <div className="form-hint">
-                {description.length}/500 caratteri
+                {description.length}/1199 caratteri
               </div>
             </div>
           </form>

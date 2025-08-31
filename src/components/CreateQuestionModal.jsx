@@ -163,7 +163,7 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
                 className={`form-input ${errors.title ? 'error' : ''}`}
                 placeholder="Inserisci un titolo per la domanda..."
                 disabled={loading}
-                maxLength={200}
+                maxLength={599}
               />
               {errors.title && (
                 <div className="form-error">{errors.title}</div>
@@ -183,7 +183,7 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
                 placeholder="Inserisci il testo della domanda..."
                 disabled={loading}
                 rows={3}
-                maxLength={1000}
+                maxLength={1199}
               />
               {errors.questionText && (
                 <div className="form-error">{errors.questionText}</div>
@@ -215,7 +215,7 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
                         className="form-input answer-input"
                         placeholder={`Risposta ${index + 1}...`}
                         disabled={loading}
-                        maxLength={500}
+                        maxLength={599}
                       />
                       <div className="answer-controls">
                         <label className="checkbox-label">

@@ -99,7 +99,7 @@ const EditQuestionModal = ({ question, isOpen, onSave, onCancel, loading = false
                 className={`form-input ${errors.title ? 'error' : ''}`}
                 placeholder="Inserisci un titolo per la domanda..."
                 disabled={loading}
-                maxLength={200}
+                maxLength={599}
               />
               {errors.title && (
                 <div className="form-error">{errors.title}</div>
@@ -120,7 +120,7 @@ const EditQuestionModal = ({ question, isOpen, onSave, onCancel, loading = false
                 placeholder="Inserisci il testo della domanda..."
                 disabled={loading}
                 rows={4}
-                maxLength={1000}
+                maxLength={1199}
               />
               {errors.questionText && (
                 <div className="form-error">{errors.questionText}</div>
