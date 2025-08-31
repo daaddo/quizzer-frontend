@@ -47,10 +47,7 @@ const DeleteQuizModal = ({ quiz, isOpen, onConfirm, onCancel, loading = false })
   return (
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">
-            Conferma Eliminazione
-          </h2>
+        <div className="modal-header delete-modal-header">
           <button 
             onClick={handleCancel}
             className="modal-close-btn"
@@ -59,6 +56,9 @@ const DeleteQuizModal = ({ quiz, isOpen, onConfirm, onCancel, loading = false })
           >
             ✕
           </button>
+          <h2 className="modal-title centered-title">
+            Conferma Eliminazione
+          </h2>
         </div>
 
         <div className="modal-body">
