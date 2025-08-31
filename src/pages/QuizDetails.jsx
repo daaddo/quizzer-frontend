@@ -4,6 +4,7 @@ import { userApi } from '../services/userApi';
 import Question from '../components/Question';
 import EditQuestionModal from '../components/EditQuestionModal';
 import CreateQuestionModal from '../components/CreateQuestionModal';
+import TestConfigModal from '../components/TestConfigModal';
 import '../styles/quiz-details.css';
 
 /**
@@ -13,9 +14,9 @@ const QuizDetails = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
+  const [quizInfo, setQuizInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [quizTitle, setQuizTitle] = useState('');
   
   // Stati per i modali
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -23,10 +24,12 @@ const QuizDetails = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [testConfigModal, setTestConfigModal] = useState({ isOpen: false, quiz: null });
+  const [showAllAnswers, setShowAllAnswers] = useState(null); // null = controllo locale, true/false = controllo globale
 
-  // Carica le domande del quiz
+  // Carica le informazioni del quiz e le domande
   useEffect(() => {
-    const loadQuizQuestions = async () => {
+    const loadQuizData = async () => {
       if (!quizId) {
         setError('ID quiz non valido');
         setLoading(false);
@@ -37,16 +40,17 @@ const QuizDetails = () => {
         setLoading(true);
         setError(null);
         
-        const questionsData = await userApi.getQuizQuestions(quizId);
-        console.log('Quiz questions loaded:', questionsData);
-        setQuestions(questionsData);
+        // Carica informazioni del quiz e domande in parallelo
+        const [quizData, questionsData] = await Promise.all([
+          userApi.getQuizById(quizId),
+          userApi.getQuizQuestions(quizId)
+        ]);
         
-        // Se ci sono domande, prova a estrarre il titolo dalla prima domanda
-        if (questionsData.length > 0) {
-          setQuizTitle(questionsData[0].title || `Quiz ${quizId}`);
-        } else {
-          setQuizTitle(`Quiz ${quizId}`);
-        }
+        console.log('Quiz data loaded:', quizData);
+        console.log('Quiz questions loaded:', questionsData);
+        
+        setQuizInfo(quizData);
+        setQuestions(questionsData);
         
       } catch (err) {
         console.error('Quiz details error:', err);
@@ -56,7 +60,7 @@ const QuizDetails = () => {
       }
     };
 
-    loadQuizQuestions();
+    loadQuizData();
   }, [quizId]);
 
   // Handler per tornare alla dashboard
@@ -186,6 +190,41 @@ const QuizDetails = () => {
     setCreateModalOpen(false);
   };
 
+  // Handler per aprire configurazione test
+  const handleStartTest = () => {
+    if (quizInfo) {
+      setTestConfigModal({ isOpen: true, quiz: quizInfo });
+    }
+  };
+
+  // Handler per avviare test con configurazione
+  const handleStartTestWithConfig = (questionCount, viewMode) => {
+    const quiz = testConfigModal.quiz;
+    setTestConfigModal({ isOpen: false, quiz: null });
+    
+    // Naviga alla pagina di esecuzione test
+    navigate(`/test/${quiz.id}`, {
+      state: {
+        questionCount,
+        quizTitle: quiz.title,
+        viewMode: viewMode || 'scrolling'
+      }
+    });
+  };
+
+  // Handler per annullare configurazione test
+  const handleCancelTestConfig = () => {
+    setTestConfigModal({ isOpen: false, quiz: null });
+  };
+
+  // Handler per toggle globale visibilità risposte
+  const handleToggleAllAnswers = () => {
+    setShowAllAnswers(prev => {
+      if (prev === null) return true; // Prima volta: mostra tutte
+      return prev ? false : true; // Alterna tra mostra/nascondi
+    });
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -243,7 +282,7 @@ const QuizDetails = () => {
               ← Dashboard
             </button>
             <div className="quiz-info">
-              <h1 className="quiz-title">{quizTitle}</h1>
+              <h1 className="quiz-title">{quizInfo?.title || `Quiz ${quizId}`}</h1>
               <div className="quiz-stats">
                 <span className="stat-item">
                   📝 0 domande
@@ -304,7 +343,7 @@ const QuizDetails = () => {
             ← Dashboard
           </button>
           <div className="quiz-info">
-            <h1 className="quiz-title">{quizTitle}</h1>
+            <h1 className="quiz-title">{quizInfo?.title || `Quiz ${quizId}`}</h1>
             <div className="quiz-stats">
               <span className="stat-item">
                 📝 {questions.length} domande
@@ -320,27 +359,106 @@ const QuizDetails = () => {
           </button>
         </div>
 
-        {/* Lista delle domande */}
-        <div className="questions-container">
-          {questions.map((question, index) => (
-            <Question 
-              key={question.id}
-              question={question}
-              questionNumber={index + 1}
-              onDeleteQuestion={handleDeleteQuestion}
-              onEditQuestion={handleEditQuestion}
-            />
-          ))}
-        </div>
+        {/* Layout con sidebar */}
+        <div className="quiz-content-layout">
+          {/* Sidebar sinistra - Informazioni quiz */}
+          {quizInfo && (
+            <div className="quiz-sidebar">
+              <div className="quiz-info-card">
+                <div className="quiz-info-header">
+                  <h2>Informazioni Quiz</h2>
+                </div>
+                
+                <div className="quiz-info-content">
+                  {quizInfo.description ? (
+                    <div className="quiz-description">
+                      <h4>Descrizione</h4>
+                      <p className="quiz-description-text">{quizInfo.description}</p>
+                    </div>
+                  ) : (
+                    <div className="quiz-description">
+                      <h4>Descrizione</h4>
+                      <p className="quiz-description-empty">Nessuna descrizione disponibile.</p>
+                    </div>
+                  )}
+                  
+                  <div className="quiz-sidebar-stats">
+                    <div className="sidebar-stat">
+                      <span className="stat-icon">📝</span>
+                      <div className="stat-info">
+                        <span className="stat-number">{questions.length}</span>
+                        <span className="stat-label">Domande</span>
+                      </div>
+                    </div>
+                    
+                    <div className="sidebar-stat">
+                      <span className="stat-icon">🎯</span>
+                      <div className="stat-info">
+                        <span className="stat-number">{questions.length >= 5 ? 'Pronto' : 'Non pronto'}</span>
+                        <span className="stat-label">Stato test</span>
+                      </div>
+                    </div>
+                  </div>
 
-        {/* Footer con azioni */}
-        <div className="quiz-footer">
-          <button 
-            onClick={handleBackToDashboard}
-            className="btn btn-secondary"
-          >
-            ← Torna alla Dashboard
-          </button>
+                  <div className="quiz-actions">
+                    <button 
+                      onClick={handleStartTest}
+                      className="btn btn-primary btn-start-test"
+                      disabled={!questions.length || questions.length < 5}
+                      title={questions.length < 5 ? 'Servono almeno 5 domande per iniziare un test' : 'Inizia test per questo quiz'}
+                    >
+                      🚀 Inizia Test
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Area principale destra - Domande */}
+          <div className="quiz-main-content">
+            {/* Controlli globali */}
+            <div className="questions-controls">
+              <div className="questions-header">
+                <h2>Domande del Quiz</h2>
+                <button 
+                  onClick={handleToggleAllAnswers}
+                  className="btn btn-secondary toggle-all-btn"
+                  title={showAllAnswers ? 'Nascondi tutte le risposte' : 'Mostra tutte le risposte'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {showAllAnswers ? 'Nascondi Tutte' : 'Mostra Tutte'}
+                </button>
+              </div>
+            </div>
+
+            {/* Lista delle domande */}
+            <div className="questions-container">
+              {questions.map((question, index) => (
+                <Question 
+                  key={question.id}
+                  question={question}
+                  questionNumber={index + 1}
+                  onDeleteQuestion={handleDeleteQuestion}
+                  onEditQuestion={handleEditQuestion}
+                  showAnswers={showAllAnswers}
+                />
+              ))}
+            </div>
+
+            {/* Footer con azioni */}
+            <div className="quiz-footer">
+              <button 
+                onClick={handleBackToDashboard}
+                className="btn btn-secondary"
+              >
+                ← Torna alla Dashboard
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -360,6 +478,14 @@ const QuizDetails = () => {
         onSave={handleSaveNewQuestion}
         onCancel={handleCancelCreate}
         loading={createLoading}
+      />
+
+      {/* Modal per configurazione test */}
+      <TestConfigModal
+        quiz={testConfigModal.quiz}
+        isOpen={testConfigModal.isOpen}
+        onStart={handleStartTestWithConfig}
+        onCancel={handleCancelTestConfig}
       />
     </div>
   );

@@ -86,6 +86,33 @@ class UserApiService {
   }
 
   /**
+   * Ottiene le informazioni complete di un quiz specifico
+   * @param {number} quizId - ID del quiz
+   * @returns {Promise<Object>} Informazioni complete del quiz { id, title, description, questionCount }
+   */
+  async getQuizById(quizId) {
+    try {
+      console.log(`🔍 Fetching quiz information for ${quizId}...`);
+      
+      // Prima ottieni le informazioni dell'utente che contengono tutti i quiz
+      const userInfo = await this.getUserInformation();
+      
+      // Trova il quiz specifico
+      const quiz = userInfo.quizzes.find(q => q.id === parseInt(quizId));
+      
+      if (!quiz) {
+        throw new Error('Quiz non trovato');
+      }
+      
+      console.log('✅ Quiz information loaded:', quiz);
+      return quiz;
+    } catch (error) {
+      console.error('❌ Error fetching quiz information:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Ottiene tutte le domande di un quiz specifico
    * @param {number} quizId - ID del quiz
    * @returns {Promise<Array>} Lista delle domande con risposte
