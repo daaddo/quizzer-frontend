@@ -173,7 +173,7 @@ const Dashboard = () => {
   };
 
   // Handler per avviare test con configurazione
-  const handleStartTestWithConfig = (questionCount) => {
+  const handleStartTestWithConfig = (questionCount, viewMode) => {
     const quiz = testConfigModal.quiz;
     setTestConfigModal({ isOpen: false, quiz: null });
     
@@ -181,7 +181,8 @@ const Dashboard = () => {
     navigate(`/test/${quiz.id}`, {
       state: {
         questionCount,
-        quizTitle: quiz.title
+        quizTitle: quiz.title,
+        viewMode: viewMode || 'scrolling'
       }
     });
   };
