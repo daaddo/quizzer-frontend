@@ -687,7 +687,7 @@ body {
 }
 
 .form-group label {
-  display: block;
+  display: flex;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: #333;
@@ -767,7 +767,9 @@ body {
   cursor: pointer;
   min-width: 100px;
 }
-
+.checkbox-text{
+  margin-left: 0.5rem;
+}
 .correct-checkbox input[type="checkbox"] {
   width: 18px;
   height: 18px;
@@ -775,7 +777,12 @@ body {
 }
 
 .checkbox-label {
+  display: flex;
+  justify-content: left;
+  gap: 0.5rem;
   user-select: none;
+  text-align: center;
+  
 }
 
 /* Form Actions */
@@ -1313,6 +1320,7 @@ body {
 
 /* Stili specifici per modal CREA NUOVA DOMANDA con scroll interno */
 .create-question-modal {
+  border-radius: 19px;
   display: flex;
   flex-direction: column;
   max-height: 90vh;
@@ -1361,7 +1369,7 @@ body {
 }
 
 .modal-header h2 {
-  color: #333;
+  color: #ffffff;
   font-size: 1.8rem;
   margin: 0;
 }
