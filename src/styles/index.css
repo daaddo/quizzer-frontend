@@ -2,6 +2,23 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* Disabilita selezione testo in tutta l'app */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Riabilita selezione solo per elementi editabili */
+input, 
+textarea, 
+[contenteditable="true"],
+[contenteditable=""],
+.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 body {
@@ -1292,6 +1309,36 @@ body {
   max-height: 90vh;
   overflow-y: auto;
   animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Stili specifici per modal CREA NUOVA DOMANDA con scroll interno */
+.create-question-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.create-question-modal .modal-header {
+  flex-shrink: 0;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.create-question-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  min-height: 0; /* Necessario per il flex con overflow */
+}
+
+.create-question-modal .modal-footer {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
 }
 
 @keyframes modalFadeIn {
