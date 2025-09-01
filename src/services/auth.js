@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
   }
 };
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = getApiBaseUrl();
 import { 
   decodeJWT, 
   isTokenExpired, 
@@ -204,6 +204,82 @@ class AuthService {
   getCurrentUser() {
     const token = getStoredToken();
     return token ? getUserFromToken(token) : null;
+  }
+
+  /**
+   * Registra un nuovo utente
+   * @param {Object} userData - {username: string, email: string, password: string}
+   * @returns {Promise<Object>} Response della registrazione
+   */
+  async register(userData) {
+    try {
+      console.log('📝 Registrazione utente:', userData.username);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/users/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password
+        })
+      });
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const errorData = await response.text();
+          throw new Error(errorData || 'Dati non validi');
+        }
+        if (response.status === 409) {
+          throw new Error('Username o email già esistenti');
+        }
+        throw new Error(`Errore registrazione: ${response.status}`);
+      }
+
+      console.log('✅ Registrazione completata con successo');
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ Errore registrazione:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Conferma l'email dell'utente tramite token
+   * @param {string} token - Token di verifica email
+   * @returns {Promise<Object>} Response della conferma
+   */
+  async confirmEmail(token) {
+    try {
+      console.log('📧 Conferma email con token...');
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/users/confirm?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          throw new Error('Token non valido o scaduto');
+        }
+        if (response.status === 404) {
+          throw new Error('Token non trovato');
+        }
+        throw new Error(`Errore conferma email: ${response.status}`);
+      }
+
+      console.log('✅ Email confermata con successo');
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ Errore conferma email:', error);
+      throw error;
+    }
   }
 
   /**

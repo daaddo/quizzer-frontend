@@ -160,6 +160,9 @@ const Login = () => {
             </form>
 
             <div className="login-footer">
+              <p>
+                Non hai ancora un account? <Link to="/register">Registrati qui</Link>
+              </p>
               <Link to="/" className="btn btn-secondary">
                 ← Torna alla Home
               </Link>
