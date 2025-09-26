@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard'
 import QuizDetails from './pages/QuizDetails'
 import TestExecution from './pages/TestExecution'
 import TestResults from './pages/TestResults'
+import OidcCallback from './pages/OidcCallback'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<EmailVerification />} />
+            <Route path="/oauth2/callback" element={<OidcCallback />} />
             <Route 
               path="/dashboard" 
               element={

@@ -113,42 +113,79 @@ class AuthService {
     try {
       const token = getStoredToken();
       
-      if (!token) {
+      // 1) JWT path
+      if (token) {
+        if (isTokenExpired(token)) {
+          // Token scaduto, rimuovilo
+          removeToken();
+          return {
+            authenticated: false,
+            user: null,
+            message: 'Token di autenticazione scaduto'
+          };
+        }
+        
+        // Token valido, estrai i dati utente
+        const userData = getUserFromToken(token);
+        if (!userData) {
+          // Token non valido, rimuovilo
+          removeToken();
+          return {
+            authenticated: false,
+            user: null,
+            message: 'Token di autenticazione non valido'
+          };
+        }
+        
         return {
-          authenticated: false,
-          user: null,
-          message: 'Nessun token di autenticazione'
+          authenticated: true,
+          user: userData,
+          token: token,
+          message: 'Autenticato tramite JWT'
         };
       }
 
-      if (isTokenExpired(token)) {
-        // Token scaduto, rimuovilo
-        removeToken();
+      // 2) Session path (no token): verifica autenticazione via cookie di sessione
+      try {
+        const response = await fetch(`${this.baseUrl}/api/v1/users`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            authenticated: true,
+            user: {
+              id: data.id,
+              username: data.username,
+              email: data.email,
+              exp: null,
+              iat: null
+            },
+            message: 'Autenticato tramite sessione'
+          };
+        }
+        if (response.status === 401) {
+          return {
+            authenticated: false,
+            user: null,
+            message: 'Non autenticato (sessione)'
+          };
+        }
         return {
           authenticated: false,
           user: null,
-          message: 'Token di autenticazione scaduto'
+          message: `Errore verifica sessione: ${response.status}`
         };
-      }
-
-      // Token valido, estrai i dati utente
-      const userData = getUserFromToken(token);
-      if (!userData) {
-        // Token non valido, rimuovilo
-        removeToken();
+      } catch (sessionErr) {
+        console.error('Errore verifica sessione:', sessionErr);
         return {
           authenticated: false,
           user: null,
-          message: 'Token di autenticazione non valido'
+          message: 'Errore verifica sessione'
         };
       }
-
-      return {
-        authenticated: true,
-        user: userData,
-        token: token,
-        message: 'Autenticato tramite JWT'
-      };
       
     } catch (error) {
       console.error('Errore verifica autenticazione:', error);
@@ -287,6 +324,8 @@ class AuthService {
    * @returns {boolean} True se autenticato con token valido
    */
   isAuthenticated() {
+    // Resta una verifica sincrona: true solo per JWT valido
+    // La sessione viene verificata in modo asincrono via checkAuthStatus()
     return hasValidToken();
   }
 }

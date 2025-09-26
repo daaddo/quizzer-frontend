@@ -43,7 +43,8 @@ class UserApiService {
       
       const response = await fetch(`${this.baseUrl}/api/v1/users`, {
         method: 'GET',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -123,7 +124,8 @@ class UserApiService {
       
       const response = await fetch(`${this.baseUrl}/api/v1/questions/${quizId}`, {
         method: 'GET',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -158,7 +160,8 @@ class UserApiService {
       
       const response = await fetch(`${this.baseUrl}/api/v1/questions/${questionId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -193,6 +196,7 @@ class UserApiService {
       const response = await fetch(`${this.baseUrl}/api/v1/quizzes`, {
         method: 'PUT',
         headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify({
           id: quizData.id,
           title: quizData.title,
@@ -264,6 +268,7 @@ class UserApiService {
       const response = await fetch(`${this.baseUrl}/api/v1/quizzes`, {
         method: 'POST',
         headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify({
           title: quizData.title,
           description: quizData.description
@@ -318,7 +323,8 @@ class UserApiService {
       
       const response = await fetch(`${this.baseUrl}/api/v1/quizzes/${quizId}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -353,7 +359,8 @@ class UserApiService {
       
       const response = await fetch(`${this.baseUrl}/api/v1/questions/random?size=${size}&quizId=${quizId}`, {
         method: 'GET',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -396,6 +403,7 @@ class UserApiService {
       const response = await fetch(`${this.baseUrl}/api/v1/questions`, {
         method: 'POST',
         headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify({
           title: questionData.title || null,
           question: questionData.question,
@@ -485,6 +493,7 @@ class UserApiService {
       const response = await fetch(`${this.baseUrl}/api/v1/questions`, {
         method: 'PUT',
         headers: getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify({
           id: questionData.id,           // Integer - ID della domanda (obbligatorio)
           title: questionData.title,     // String - Titolo della domanda

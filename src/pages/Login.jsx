@@ -168,6 +168,11 @@ const Login = () => {
                 href="http://localhost:8080/oauth2/authorization/google"
                 className="btn-google"
                 aria-label="Accedi con Google"
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem('postLoginRedirect', from);
+                  } catch {}
+                }}
               >
                 <span className="btn-google-icon" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18">
