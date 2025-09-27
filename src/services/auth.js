@@ -31,6 +31,27 @@ class AuthService {
   }
 
   /**
+   * Controlla lo stato della sessione lato server
+   * @returns {Promise<boolean>} true se 200, false se 401 o errore
+   */
+  async checkServerSessionStatus() {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/users/status`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (response.status === 200) return true;
+      if (response.status === 401) return false;
+      console.warn(`Verifica status sessione ha restituito: ${response.status}`);
+      return false;
+    } catch (error) {
+      console.error('Errore durante la verifica dello status sessione:', error);
+      return false;
+    }
+  }
+
+  /**
    * Effettua il login con credenziali username/email e password
    * @param {Object} credentials - {username: string, password: string}
    * @returns {Promise<Object>} Response del login con JWT token
@@ -145,7 +166,16 @@ class AuthService {
         };
       }
 
-      // 2) Session path (no token): verifica autenticazione via cookie di sessione
+      // 2) Session path (no token): prima controlla lo status della sessione
+      const sessionOk = await this.checkServerSessionStatus();
+      if (!sessionOk) {
+        return {
+          authenticated: false,
+          user: null
+        };
+      }
+
+      // Se la sessione è valida, recupera i dati utente
       try {
         const response = await fetch(`${this.baseUrl}/api/v1/users`, {
           method: 'GET',
@@ -166,24 +196,18 @@ class AuthService {
             message: 'Autenticato tramite sessione'
           };
         }
-        if (response.status === 401) {
-          return {
-            authenticated: false,
-            user: null,
-            message: 'Non autenticato (sessione)'
-          };
-        }
+        // Se lo status era ok ma la fetch utente fallisce, consideriamo non autenticato
         return {
           authenticated: false,
           user: null,
-          message: `Errore verifica sessione: ${response.status}`
+          message: `Errore recupero utente: ${response.status}`
         };
       } catch (sessionErr) {
-        console.error('Errore verifica sessione:', sessionErr);
+        console.error('Errore recupero utente sessione:', sessionErr);
         return {
           authenticated: false,
           user: null,
-          message: 'Errore verifica sessione'
+          message: 'Errore recupero utente sessione'
         };
       }
       
@@ -203,19 +227,28 @@ class AuthService {
    * Effettua il logout rimuovendo il JWT token
    */
   async logout() {
+    const token = getStoredToken();
     try {
-      // Con JWT, il logout è principalmente client-side
-      // Rimuovi il token dal localStorage
-      removeToken();
-      
-      return { success: true };
-      
+      // Effettua sempre il tentativo di logout server-side
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${this.baseUrl}/logout`, {
+        method: 'POST',
+        headers,
+        credentials: 'include'
+      });
+      if (!response.ok && response.status !== 204) {
+        console.warn(`Logout server-side non ok: ${response.status}`);
+      }
     } catch (error) {
-      console.error('Errore durante il logout:', error);
-      // Anche se c'è un errore, forza la rimozione del token
+      console.error('Errore durante il logout server-side:', error);
+    } finally {
+      // Pulisci sempre il token lato client
       removeToken();
-      return { success: true };
     }
+    return { success: true };
   }
 
   /**
