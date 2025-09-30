@@ -571,6 +571,151 @@ class UserApiService {
       throw error;
     }
   }
+
+  /**
+   * Genera un token di link per un quiz e costruisce l'URL utilizzabile
+   * @param {Object} params
+   * @param {number} params.quizId - ID del quiz
+   * @param {number} params.numberOfQuestions - Numero di domande
+   * @param {string} params.duration - Durata nel formato HH:mm:ss (accetta anche HH:mm)
+   * @param {string|null} params.expirationDate - Data scadenza nel formato YYYY-MM-DDTHH:mm:ss oppure null
+   * @returns {Promise<{ token: string, link: string }>} Token e link completo
+   */
+  async generateLink({ quizId, numberOfQuestions, duration, expirationDate }) {
+    try {
+      // Normalizza durata: consenti HH:mm e converti in HH:mm:ss
+      let normalizedDuration = duration || null;
+      if (normalizedDuration && /^\d{2}:\d{2}$/.test(normalizedDuration)) {
+        normalizedDuration = `${normalizedDuration}:00`;
+      }
+
+      // Normalizza expirationDate: accetta stringa da input datetime-local (YYYY-MM-DDTHH:mm)
+      let normalizedExpiration = expirationDate || null;
+      if (normalizedExpiration && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalizedExpiration)) {
+        normalizedExpiration = `${normalizedExpiration}:00`;
+      }
+
+      const body = {
+        quizId,
+        numberOfQuestions,
+        duration: normalizedDuration,
+        expirationDate: normalizedExpiration
+      };
+
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes/link`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Errore API: ${response.status}`;
+        try {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        } catch {}
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 400) {
+          throw new Error(errorMessage || 'Parametri non validi');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato');
+        }
+        throw new Error(errorMessage);
+      }
+
+      // La risposta è un token come testo semplice
+      const token = (await response.text()).trim();
+      if (!token) {
+        throw new Error('Token non valido ricevuto dal server');
+      }
+
+      // Costruisci link frontend al percorso /takingquiz
+      const frontendOrigin = typeof window !== 'undefined' && window.location && window.location.origin
+        ? window.location.origin
+        : '';
+      const link = `${frontendOrigin}/takingquiz?token=${encodeURIComponent(token)}`;
+      return { token, link };
+    } catch (error) {
+      console.error('Error generating link:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ottiene set casuale di domande tramite token
+   * @param {string} token
+   * @returns {Promise<Array>} Lista domande
+   */
+  async getRandomQuestionsByToken(token) {
+    try {
+      const url = `${this.baseUrl}/api/v1/quizzes/random?token=${encodeURIComponent(token)}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Accesso negato o quiz già richiesto');
+        }
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Formato risposta non valido');
+      }
+      return data;
+    } catch (error) {
+      console.error('Error fetching questions by token:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Invia le risposte per un quiz identificato da token
+   * @param {string} token
+   * @param {Record<number, number[]>} answersMap - Mappa { questionId: [answerId, ...] }
+   * @returns {Promise<Record<number, { selectedOptions: number[], correctOptions: number[] }>>}
+   */
+  async submitAnswersByToken(token, answersMap) {
+    try {
+      const url = `${this.baseUrl}/api/v1/quizzes/postAnswers?token=${encodeURIComponent(token)}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(answersMap)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 403) {
+          throw new Error('Accesso negato o token già usato');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi inviati al server');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data || {};
+    } catch (error) {
+      console.error('Error submitting answers by token:', error);
+      throw error;
+    }
+  }
 }
 
 // Esporta istanza singleton

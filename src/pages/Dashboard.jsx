@@ -8,6 +8,7 @@ import EditQuizModal from '../components/EditQuizModal';
 import CreateQuizModal from '../components/CreateQuizModal';
 import DeleteQuizModal from '../components/DeleteQuizModal';
 import TestConfigModal from '../components/TestConfigModal';
+import GenerateLinkModal from '../components/GenerateLinkModal';
 import '../components/dashboard.css';
 
 /**
@@ -25,6 +26,7 @@ const Dashboard = () => {
   const [createQuizModal, setCreateQuizModal] = useState({ isOpen: false });
   const [deleteQuizModal, setDeleteQuizModal] = useState({ isOpen: false, quiz: null });
   const [testConfigModal, setTestConfigModal] = useState({ isOpen: false, quiz: null });
+  const [generateLinkModal, setGenerateLinkModal] = useState({ isOpen: false, quiz: null, result: null });
   const [modalLoading, setModalLoading] = useState(false);
 
   // Carica i dati completi dell'utente
@@ -172,6 +174,28 @@ const Dashboard = () => {
     setTestConfigModal({ isOpen: true, quiz });
   };
 
+  // Handlers per generare link
+  const handleOpenGenerateLink = (quiz) => {
+    setGenerateLinkModal({ isOpen: true, quiz, result: null });
+  };
+
+  const handleCancelGenerateLink = () => {
+    setGenerateLinkModal({ isOpen: false, quiz: null, result: null });
+  };
+
+  const handleConfirmGenerateLink = async ({ quizId, numberOfQuestions, duration, expirationDate }) => {
+    try {
+      setModalLoading(true);
+      const res = await userApi.generateLink({ quizId, numberOfQuestions, duration, expirationDate });
+      setGenerateLinkModal(prev => ({ ...prev, result: res }));
+    } catch (error) {
+      console.error('Errore generazione link:', error);
+      alert(`Errore generazione link: ${error.message}`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   // Handler per avviare test con configurazione
   const handleStartTestWithConfig = (questionCount, viewMode) => {
     const quiz = testConfigModal.quiz;
@@ -288,6 +312,7 @@ const Dashboard = () => {
           onEditQuiz={handleEditQuiz}
           onDeleteQuiz={handleDeleteQuiz}
           onStartTest={handleStartTest}
+          onGenerateLink={handleOpenGenerateLink}
         />
       </div>
 
@@ -321,6 +346,15 @@ const Dashboard = () => {
         onStart={handleStartTestWithConfig}
         onCancel={handleCancelTestConfig}
         loading={modalLoading}
+      />
+
+      <GenerateLinkModal
+        quiz={generateLinkModal.quiz}
+        isOpen={generateLinkModal.isOpen}
+        onGenerate={handleConfirmGenerateLink}
+        onCancel={handleCancelGenerateLink}
+        loading={modalLoading}
+        result={generateLinkModal.result}
       />
     </div>
   );
