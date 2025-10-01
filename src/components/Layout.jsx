@@ -15,8 +15,8 @@ const Layout = ({ children }) => {
 
     // ping immediato
     ping();
-    // ogni 1:30 (90 secondi)
-    const intervalId = setInterval(ping, 90 * 1000);
+    // ogni 10 minuti
+    const intervalId = setInterval(ping, 10 * 60 * 1000);
 
     return () => {
       isCancelled = true;
