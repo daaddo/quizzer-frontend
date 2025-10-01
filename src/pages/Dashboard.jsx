@@ -62,8 +62,7 @@ const Dashboard = () => {
   // Handler per click su quiz - naviga alla pagina del quiz
   const handleQuizClick = (quizId, quiz) => {
     console.log('Navigating to quiz:', quizId, quiz);
-    // Naviga alla pagina del quiz
-    window.location.href = `/quiz/${quizId}`;
+    navigate(`/quiz/${quizId}`);
   };
 
   // Handler per aprire modal di creazione quiz

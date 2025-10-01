@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { authService } from '../services/auth.js';
 
 // Creazione del Context
@@ -20,24 +20,13 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Verifica lo stato di autenticazione all'avvio dell'app
+  // Verifica lo stato di autenticazione SOLO una volta al mount
+  const hasCheckedRef = useRef(false);
   useEffect(() => {
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
     checkAuthStatus();
-    
-    // Imposta un controllo periodico per la scadenza del token
-    const interval = setInterval(() => {
-      const currentAuthStatus = authService.isAuthenticated();
-      if (isAuthenticated && !currentAuthStatus) {
-        // Token scaduto, effettua logout automatico
-        console.log('Token scaduto, logout automatico');
-        setUser(null);
-        setIsAuthenticated(false);
-        setError('Sessione scaduta, effettua nuovamente il login');
-      }
-    }, 60000); // Controlla ogni minuto
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, []);
 
   /**
    * Verifica lo stato di autenticazione corrente basandosi sul JWT token

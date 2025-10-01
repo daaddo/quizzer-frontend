@@ -165,7 +165,7 @@ const IssuedQuizzesPage = () => {
                           isExpired ? (
                             <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
                           ) : (
-                            <a className="quiz-action-btn primary" href={link}>Apri</a>
+                            <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
                           )
                         ) : (
                           <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>

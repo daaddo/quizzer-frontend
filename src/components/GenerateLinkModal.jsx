@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Modal per generare un link con token per un quiz
  */
 const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false, result }) => {
+  const navigate = useNavigate();
   const [numberOfQuestions, setNumberOfQuestions] = useState(1);
   const [duration, setDuration] = useState('00:30'); // HH:mm
   const [expirationDate, setExpirationDate] = useState(''); // datetime-local
@@ -146,7 +148,11 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
                   onClick={() => navigator.clipboard.writeText(result.link)}
                   type="button"
                 >Copia link</button>
-                <a className="btn btn-primary" href={result.link}>Apri link</a>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(result?.token || '')}`)}
+                >Apri link</button>
               </div>
             </div>
           )}
