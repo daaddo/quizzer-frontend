@@ -237,8 +237,21 @@ const TakingQuiz = () => {
                       const selected = answers[qid] || [];
                       const result = results ? results[qid] : null;
                       const correctSet = result ? new Set(result.correctOptions || []) : null;
+                      const isQuestionCorrect = result
+                        ? (() => {
+                            const sel = new Set(result.selectedOptions || []);
+                            const cor = new Set(result.correctOptions || []);
+                            return sel.size === cor.size && [...sel].every(v => cor.has(v));
+                          })()
+                        : false;
+                      const containerBg = results
+                        ? (isQuestionCorrect ? 'rgba(198, 246, 213, 0.25)' : 'rgba(254, 215, 215, 0.25)')
+                        : 'transparent';
+                      const containerBorder = results
+                        ? (isQuestionCorrect ? '1px solid rgba(34, 84, 61, 0.25)' : '1px solid rgba(155, 44, 44, 0.25)')
+                        : '1px solid transparent';
                       return (
-                        <li key={`${q.quizId}-${idx}`} style={{ marginBottom: '1rem' }}>
+                        <li key={`${q.quizId}-${idx}`} style={{ marginBottom: '1rem', background: containerBg, border: containerBorder, borderRadius: 8, padding: '0.75rem' }}>
                           <div style={{ fontWeight: 600 }}>{q.title ? `${q.title} — ` : ''}{q.question}</div>
                           {Array.isArray(q.list) && q.list.length > 0 && (
                             <ul style={{ marginTop: '0.5rem', listStyle: 'none', paddingLeft: 0 }}>
