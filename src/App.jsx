@@ -13,6 +13,7 @@ import TestExecution from './pages/TestExecution'
 import TestResults from './pages/TestResults'
 import OidcCallback from './pages/OidcCallback'
 import TakingQuiz from './pages/TakingQuiz'
+import IssuedQuizzesPage from './pages/IssuedQuizzesPage'
 
 function App() {
   return (
@@ -39,6 +40,14 @@ function App() {
                 <ProtectedRoute>
                   <QuizDetails />
                 </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quiz/:quizId/issued" 
+              element={
+              <ProtectedRoute>
+                <IssuedQuizzesPage />
+              </ProtectedRoute>
               } 
             />
             <Route 

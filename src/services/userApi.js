@@ -34,6 +34,45 @@ class UserApiService {
   }
 
   /**
+   * Ottiene la lista dei quiz emessi (issued) per un dato quiz
+   * GET /api/v1/users/issued-quizzes/{quizId}
+   * @param {number} quizId
+   * @returns {Promise<Array>} List<IssuedQuizInfosDto>
+   */
+  async getIssuedQuizzes(quizId) {
+    try {
+      if (!quizId && quizId !== 0) {
+        throw new Error('quizId mancante');
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/users/issued-quizzes/${encodeURIComponent(quizId)}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 404) {
+          throw new Error('Quiz non trovato o nessun quiz creato');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Formato risposta non valido');
+      }
+      return data;
+    } catch (error) {
+      console.error('Error fetching issued quizzes:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Ottiene le informazioni complete dell'utente inclusi i quiz
    * @returns {Promise<Object>} Informazioni utente con quiz
    */

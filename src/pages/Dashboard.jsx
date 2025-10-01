@@ -9,6 +9,7 @@ import CreateQuizModal from '../components/CreateQuizModal';
 import DeleteQuizModal from '../components/DeleteQuizModal';
 import TestConfigModal from '../components/TestConfigModal';
 import GenerateLinkModal from '../components/GenerateLinkModal';
+import IssuedQuizzesModal from '../components/IssuedQuizzesModal';
 import '../components/dashboard.css';
 
 /**
@@ -28,6 +29,7 @@ const Dashboard = () => {
   const [testConfigModal, setTestConfigModal] = useState({ isOpen: false, quiz: null });
   const [generateLinkModal, setGenerateLinkModal] = useState({ isOpen: false, quiz: null, result: null });
   const [modalLoading, setModalLoading] = useState(false);
+  const [issuedModal, setIssuedModal] = useState({ isOpen: false, quiz: null, items: [], loading: false, error: null });
 
   // Carica i dati completi dell'utente
   useEffect(() => {
@@ -196,6 +198,15 @@ const Dashboard = () => {
     }
   };
 
+  // Handlers issued quizzes
+  const handleOpenIssuedQuizzes = (quiz) => {
+    navigate(`/quiz/${quiz.id}/issued`);
+  };
+
+  const handleCloseIssuedQuizzes = () => {
+    setIssuedModal({ isOpen: false, quiz: null, items: [], loading: false, error: null });
+  };
+
   // Handler per avviare test con configurazione
   const handleStartTestWithConfig = (questionCount, viewMode) => {
     const quiz = testConfigModal.quiz;
@@ -313,6 +324,7 @@ const Dashboard = () => {
           onDeleteQuiz={handleDeleteQuiz}
           onStartTest={handleStartTest}
           onGenerateLink={handleOpenGenerateLink}
+          onViewIssuedQuizzes={handleOpenIssuedQuizzes}
         />
       </div>
 
@@ -356,6 +368,8 @@ const Dashboard = () => {
         loading={modalLoading}
         result={generateLinkModal.result}
       />
+
+      {/* Modale rimosso in favore della pagina dedicata */}
     </div>
   );
 };

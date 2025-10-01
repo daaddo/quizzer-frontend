@@ -4,7 +4,7 @@ import React from 'react';
  * Componente card per visualizzare un singolo quiz
  * Struttura quiz: { id, title, description, questionCount }
  */
-const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, onGenerateLink }) => {
+const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, onGenerateLink, onViewIssuedQuizzes }) => {
   const handleClick = () => {
     if (onQuizClick) {
       onQuizClick(quiz.id, quiz);
@@ -36,6 +36,13 @@ const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, on
     e.stopPropagation();
     if (onGenerateLink) {
       onGenerateLink(quiz);
+    }
+  };
+
+  const handleViewIssued = (e) => {
+    e.stopPropagation();
+    if (onViewIssuedQuizzes) {
+      onViewIssuedQuizzes(quiz);
     }
   };
 
@@ -76,6 +83,14 @@ const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, on
           <div className="quiz-actions-primary">
             <button className="quiz-action-btn primary" title="Visualizza Quiz">
               Visualizza Quiz
+            </button>
+            <button 
+              className="quiz-action-btn primary"
+              onClick={handleViewIssued}
+              title="Visualizza quiz creati"
+              disabled={!quiz?.id && quiz?.id !== 0}
+            >
+              Visualizza quiz creati
             </button>
           </div>
           <div className="quiz-actions-secondary">
