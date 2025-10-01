@@ -686,8 +686,13 @@ class UserApiService {
 
   /**
    * Ottiene set casuale di domande tramite token
+   * Il backend può restituire:
+   * - Array di domande
+   * - Oggetto con chiave tipo "QuizInfos[...]": [...]
+   * - Oggetto { questions: [...], meta: {...} }
+   * Lasciamo che il chiamante normalizzi il formato.
    * @param {string} token
-   * @returns {Promise<Array>} Lista domande
+   * @returns {Promise<any>} Payload bruto dal server
    */
   async getRandomQuestionsByToken(token) {
     try {
@@ -709,9 +714,6 @@ class UserApiService {
       }
 
       const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error('Formato risposta non valido');
-      }
       return data;
     } catch (error) {
       console.error('Error fetching questions by token:', error);

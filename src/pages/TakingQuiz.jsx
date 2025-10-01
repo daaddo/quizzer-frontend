@@ -19,6 +19,9 @@ const TakingQuiz = () => {
   const [results, setResults] = useState(null); // { [questionId]: { selectedOptions: number[], correctOptions: number[] } }
   const [submitting, setSubmitting] = useState(false);
   const [score, setScore] = useState(null);
+  const [meta, setMeta] = useState({ numberOfQuestions: null, expirationDate: null, duration: null });
+  const [durationSecs, setDurationSecs] = useState(null);
+  const [remainingSecs, setRemainingSecs] = useState(null);
 
   // Vista: 'scrolling' (una domanda alla volta) oppure 'cascata' (tutte)
   const [viewMode, setViewMode] = useState(() => {
@@ -50,14 +53,54 @@ const TakingQuiz = () => {
       if (hasFetchedRef.current) return;
       hasFetchedRef.current = true;
 
+      // Helpers per payload
+      const normalizePayload = (data) => {
+        let questionsArr = [];
+        let metaInfo = { numberOfQuestions: null, expirationDate: null, duration: null };
+        try {
+          if (Array.isArray(data)) {
+            questionsArr = data;
+          } else if (data && typeof data === 'object') {
+            if (Array.isArray(data.questions)) {
+              // payload già normalizzato
+              questionsArr = data.questions;
+              if (data.meta) metaInfo = { ...metaInfo, ...data.meta };
+            } else {
+              const keys = Object.keys(data);
+              if (keys.length === 1 && Array.isArray(data[keys[0]])) {
+                const header = keys[0];
+                questionsArr = data[header] || [];
+                const durMatch = /duration=([\d:]+)/.exec(header);
+                const expMatch = /expirationDate=([^,\]]+)/.exec(header);
+                const numMatch = /numberOfQuestions=(\d+)/.exec(header);
+                metaInfo = {
+                  numberOfQuestions: numMatch ? parseInt(numMatch[1], 10) : null,
+                  expirationDate: expMatch ? (expMatch[1] === 'null' ? null : expMatch[1]) : null,
+                  duration: durMatch ? durMatch[1] : null,
+                };
+              }
+            }
+          }
+        } catch {}
+        return { questionsArr, metaInfo };
+      };
+
       // 1) Prova a caricare il test dalla cache locale per evitare refetch al refresh
       try {
         const key = `takingquiz:test:${token}`;
         const cached = localStorage.getItem(key);
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed)) {
-            setQuestions(parsed);
+          const { questionsArr, metaInfo } = normalizePayload(parsed);
+          if (Array.isArray(questionsArr)) {
+            setQuestions(questionsArr);
+            setMeta(metaInfo);
+            if (metaInfo.duration) {
+              const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
+              const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+              setDurationSecs(secs);
+              setRemainingSecs(secs);
+            }
             setLoading(false);
             return;
           }
@@ -97,10 +140,18 @@ const TakingQuiz = () => {
         setLoading(true);
         setError(null);
         const data = await userApi.getRandomQuestionsByToken(token);
-        setQuestions(data);
+        const { questionsArr, metaInfo } = normalizePayload(data);
+        setQuestions(questionsArr);
+        setMeta(metaInfo);
+        if (metaInfo.duration) {
+          const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
+          const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+          setDurationSecs(secs);
+          setRemainingSecs(secs);
+        }
         // 2) Salva il test corrente in localStorage per riutilizzarlo al refresh
         try {
-          localStorage.setItem(key, JSON.stringify(data));
+          localStorage.setItem(key, JSON.stringify({ questions: questionsArr, meta: metaInfo }));
         } catch {}
       } catch (err) {
         setError(err.message || 'Errore nel caricamento delle domande');
@@ -112,6 +163,24 @@ const TakingQuiz = () => {
 
     fetchQuestions();
   }, [token]);
+
+  // Countdown timer (solo visuale)
+  useEffect(() => {
+    if (remainingSecs == null) return;
+    const t = setInterval(() => {
+      setRemainingSecs((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [remainingSecs]);
+
+  const formatTime = (total) => {
+    if (total == null) return '-';
+    const hh = Math.floor(total / 3600);
+    const mm = Math.floor((total % 3600) / 60);
+    const ss = total % 60;
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  };
 
   // Carica risposte e risultati salvati per questo token
   useEffect(() => {
@@ -280,6 +349,18 @@ const TakingQuiz = () => {
           <button onClick={() => navigate('/dashboard')} className="back-button">← Abbandona</button>
           <div className="test-info">
             <h1 className="test-title">Quiz generato {score ? `— Punteggio: ${score}` : ''}</h1>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+              {meta?.duration && (
+                <span className="stat-badge" title={`Durata totale: ${meta.duration}`}>
+                  ⏱ Tempo: {formatTime(remainingSecs)}
+                </span>
+              )}
+              {meta?.numberOfQuestions != null && (
+                <span className="stat-badge" title="Numero di domande">
+                  📝 {meta.numberOfQuestions} domande
+                </span>
+              )}
+            </div>
             <div className="test-progress">
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${progress}%` }}></div>
