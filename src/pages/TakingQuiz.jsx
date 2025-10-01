@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
+import '../styles/test.css';
 
 // Guard a livello di modulo per evitare doppie fetch in StrictMode (monta->smonta->monta)
 const inflightTokens = new Set();
@@ -18,6 +19,22 @@ const TakingQuiz = () => {
   const [results, setResults] = useState(null); // { [questionId]: { selectedOptions: number[], correctOptions: number[] } }
   const [submitting, setSubmitting] = useState(false);
   const [score, setScore] = useState(null);
+
+  // Vista: 'scrolling' (una domanda alla volta) oppure 'cascata' (tutte)
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = token ? localStorage.getItem(`takingquiz:viewmode:${token}`) : null;
+      return saved === 'scrolling' || saved === 'cascata' ? saved : 'cascata';
+    } catch {
+      return 'cascata';
+    }
+  });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  useEffect(() => {
+    try {
+      if (token) localStorage.setItem(`takingquiz:viewmode:${token}`, viewMode);
+    } catch {}
+  }, [token, viewMode]);
 
   // Evita doppio fetch in StrictMode (dev)
   const hasFetchedRef = useRef(false);
@@ -211,95 +228,112 @@ const TakingQuiz = () => {
     );
   }
 
-  return (
-    <div className="dashboard">
-      <div className="container">
-        <div className="quiz-grid">
-          <h2 className="quiz-section-title">Quiz generato {score ? `— Punteggio: ${score}` : ''}</h2>
-          {questions.length === 0 ? (
-            <div className="quiz-grid-empty">
-              <div className="empty-icon">📚</div>
-              <h3>Nessuna domanda disponibile</h3>
-              <div className="empty-actions">
-                <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>Torna alla Dashboard</button>
-              </div>
-            </div>
-          ) : (
-            <div className="quiz-cards-container">
-              <div className="quiz-card" style={{ cursor: 'default' }}>
-                <div className="quiz-card-header">
-                  <h3 className="quiz-title">Domande ({questions.length})</h3>
-                </div>
-                <div className="quiz-card-body">
-                  <ol style={{ paddingLeft: '1.25rem' }}>
-                    {questions.map((q, idx) => {
-                      const qid = String(q.quizId);
-                      const selected = answers[qid] || [];
-                      const result = results ? results[qid] : null;
-                      const correctSet = result ? new Set(result.correctOptions || []) : null;
-                      const isQuestionCorrect = result
-                        ? (() => {
-                            const sel = new Set(result.selectedOptions || []);
-                            const cor = new Set(result.correctOptions || []);
-                            return sel.size === cor.size && [...sel].every(v => cor.has(v));
-                          })()
-                        : false;
-                      const containerBg = results
-                        ? (isQuestionCorrect ? 'rgba(198, 246, 213, 0.25)' : 'rgba(254, 215, 215, 0.25)')
-                        : 'transparent';
-                      const containerBorder = results
-                        ? (isQuestionCorrect ? '1px solid rgba(34, 84, 61, 0.25)' : '1px solid rgba(155, 44, 44, 0.25)')
-                        : '1px solid transparent';
-                      return (
-                        <li key={`${q.quizId}-${idx}`} style={{ marginBottom: '1rem', background: containerBg, border: containerBorder, borderRadius: 8, padding: '0.75rem' }}>
-                          <div style={{ fontWeight: 600 }}>{q.title ? `${q.title} — ` : ''}{q.question}</div>
-                          {Array.isArray(q.list) && q.list.length > 0 && (
-                            <ul style={{ marginTop: '0.5rem', listStyle: 'none', paddingLeft: 0 }}>
-                              {q.list.map((a) => {
-                                const isChecked = selected.includes(a.id);
-                                const isCorrect = correctSet ? correctSet.has(a.id) : false;
-                                const showColors = !!results;
-                                const color = showColors ? (isCorrect ? '#22543d' : isChecked ? '#9b2c2c' : '#2d3748') : '#2d3748';
-                                const bg = showColors ? (isCorrect ? '#c6f6d5' : isChecked ? '#fed7d7' : 'transparent') : 'transparent';
-                                return (
-                                  <li key={a.id} style={{ margin: '0.35rem 0', background: bg, borderRadius: 6, padding: '0.35rem 0.5rem' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: results ? 'default' : 'pointer', color }}>
-                                      <input
-                                        type={q.multipleChoice ? 'checkbox' : 'radio'}
-                                        name={`q-${qid}`}
-                                        checked={isChecked}
-                                        disabled={!!results}
-                                        onChange={() => handleToggle(qid, a.id, q.multipleChoice)}
-                                      />
-                                      <span>{a.answer}</span>
-                                    </label>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                          <div style={{ marginTop: '0.25rem', color: '#718096' }}>
-                            {q.multipleChoice ? 'Risposta multipla' : 'Risposta singola'}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </div>
-                <div className="quiz-card-footer">
-                  <div className="quiz-actions">
-                    {!results && (
-                      <button className="quiz-action-btn primary" disabled={submitting} onClick={handleSubmit}>
-                        {submitting ? 'Invio...' : 'Invia risposte'}
-                      </button>
-                    )}
-                    <button className="quiz-action-btn secondary" onClick={() => navigate('/dashboard')}>Chiudi</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+  const total = questions.length || 1;
+  const progress = viewMode === 'scrolling'
+    ? ((currentIndex + 1) / total) * 100
+    : (Object.keys(answers).length / total) * 100;
+
+  const renderQuestionCard = (q, idx, isSingle = false) => {
+    const qid = String(q.quizId);
+    const selected = answers[qid] || [];
+    const result = results ? results[qid] : null;
+    const correctSet = result ? new Set(result.correctOptions || []) : null;
+    const showColors = !!results;
+    return (
+      <div className={`question-card test-question ${isSingle ? '' : 'fullpage-question'}`} id={`question-${idx}`} key={`${q.quizId}-${idx}`}>
+        <div className="question-header">
+          <div className="question-number">Domanda {idx + 1}</div>
+          {q.title && <div className="question-title">{q.title}</div>}
         </div>
+        <div className="question-content">
+          <p className="question-text">{q.question}</p>
+          <div className="answers-container">
+            <div className="answer-type-hint">{q.multipleChoice ? 'Seleziona tutte le risposte corrette:' : 'Seleziona una risposta:'}</div>
+            {Array.isArray(q.list) && q.list.map((a) => {
+              const isChecked = selected.includes(a.id);
+              const isCorrect = correctSet ? correctSet.has(a.id) : false;
+              return (
+                <label key={a.id} className={`answer-option ${isChecked ? 'selected' : ''}`}>
+                  <input
+                    type={q.multipleChoice ? 'checkbox' : 'radio'}
+                    name={`q-${qid}`}
+                    value={a.id}
+                    checked={isChecked}
+                    disabled={!!results}
+                    onChange={() => handleToggle(qid, a.id, q.multipleChoice)}
+                  />
+                  <span className="answer-text" style={showColors ? { color: isCorrect ? '#22543d' : isChecked ? '#9b2c2c' : undefined } : undefined}>{a.answer}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`test-execution takingquiz-theme ${viewMode === 'cascata' ? 'fullpage-mode' : 'scrolling-mode'}`}>
+      <div className="container">
+        {/* Header del test */}
+        <div className="test-header">
+          <button onClick={() => navigate('/dashboard')} className="back-button">← Abbandona</button>
+          <div className="test-info">
+            <h1 className="test-title">Quiz generato {score ? `— Punteggio: ${score}` : ''}</h1>
+            <div className="test-progress">
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+              </div>
+              <span className="progress-text">
+                {viewMode === 'scrolling' ? `Domanda ${currentIndex + 1} di ${total}` : `Risposte date: ${Object.keys(answers).length} di ${total}`}
+              </span>
+            </div>
+          </div>
+          <div className="view-toggle" role="tablist" aria-label="Modalità visualizzazione">
+            <button className={`btn ${viewMode === 'scrolling' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('scrolling')}>Scorrimento</button>
+            <button className={`btn ${viewMode === 'cascata' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setViewMode('cascata')}>A cascata</button>
+          </div>
+        </div>
+
+        {/* Contenuto */}
+        {questions.length === 0 ? (
+          <div className="test-empty">
+            <div className="container">
+              <div className="empty-content">
+                <div className="empty-icon">📝</div>
+                <h3>Nessuna domanda disponibile</h3>
+                <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Torna alla Dashboard</button>
+              </div>
+            </div>
+          </div>
+        ) : viewMode === 'scrolling' ? (
+          <div className="test-question-container">
+            {renderQuestionCard(questions[currentIndex], currentIndex, true)}
+            <div className="test-navigation">
+              <div className="nav-buttons">
+                <button className="btn btn-secondary" onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))} disabled={currentIndex === 0}>Precedente</button>
+                {currentIndex < total - 1 ? (
+                  <button className="btn btn-primary" onClick={() => setCurrentIndex(Math.min(total - 1, currentIndex + 1))}>Successiva</button>
+                ) : (
+                  !results && (
+                    <button className="btn btn-success" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
+                  )
+                )}
+              </div>
+              <div className="answered-count">Risposte date: {Object.keys(answers).length} / {total}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="fullpage-questions-container">
+            {questions.map((q, idx) => renderQuestionCard(q, idx))}
+            <div className="fullpage-navigation">
+              <div className="answered-count">Risposte date: {Object.keys(answers).length} / {total}</div>
+              {!results && (
+                <button className="btn btn-success btn-large" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
