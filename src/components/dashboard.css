@@ -153,6 +153,32 @@
   gap: 2rem;
 }
 
+/* ===== ISSUED QUIZZES (scoped) ===== */
+.issued-cards .quiz-card {
+  min-height: unset; /* override default min-height */
+  height: 360px; /* square-ish look */
+}
+
+.issued-cards .quiz-card-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.issued-cards .issued-link {
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .issued-cards .quiz-card {
+    height: 320px;
+  }
+}
+
 /* ===== QUIZ CARDS ===== */
 .quiz-card {
   background: white;

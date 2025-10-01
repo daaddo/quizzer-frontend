@@ -63,6 +63,25 @@ const QuizDetails = () => {
     loadQuizData();
   }, [quizId]);
 
+  // Retry handler senza ricaricare la pagina
+  const handleRetry = async () => {
+    if (!quizId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const [quizData, questionsData] = await Promise.all([
+        userApi.getQuizById(quizId),
+        userApi.getQuizQuestions(quizId)
+      ]);
+      setQuizInfo(quizData);
+      setQuestions(questionsData);
+    } catch (err) {
+      setError(err.message || 'Errore nel ricaricamento dei dati');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handler per tornare alla dashboard
   const handleBackToDashboard = () => {
     navigate('/dashboard');
@@ -256,7 +275,7 @@ const QuizDetails = () => {
             <p>{error}</p>
             <div className="error-actions">
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={handleRetry} 
                 className="btn btn-primary"
               >
                 🔄 Riprova

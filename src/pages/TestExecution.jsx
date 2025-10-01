@@ -51,6 +51,21 @@ const TestExecution = () => {
     loadTestQuestions();
   }, [quizId, questionCount]);
 
+  // Retry handler senza ricaricare la pagina
+  const handleRetry = async () => {
+    if (!quizId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const questionsData = await userApi.getRandomQuestions(parseInt(quizId), questionCount);
+      setQuestions(questionsData);
+    } catch (err) {
+      setError(err.message || 'Errore nel caricamento del test');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handler per tornare alla dashboard
   const handleBackToDashboard = () => {
     if (window.confirm('Sei sicuro di voler abbandonare il test? Tutti i progressi andranno persi.')) {
@@ -162,7 +177,7 @@ const TestExecution = () => {
             <p>{error}</p>
             <div className="error-actions">
               <button 
-                onClick={() => window.location.reload()} 
+                onClick={handleRetry} 
                 className="btn btn-primary"
               >
                 Riprova

@@ -273,12 +273,7 @@ const Dashboard = () => {
               >
                 🔄 Riprova
               </button>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="btn btn-secondary"
-              >
-                🔄 Ricarica Pagina
-              </button>
+              {/* Rimosso reload pagina: il bottone sopra effettua già il retry della fetch */}
             </div>
           </div>
         </div>
