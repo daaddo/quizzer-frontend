@@ -132,74 +132,64 @@ const IssuedQuizzesPage = () => {
               </div>
             </div>
           ) : (
-            <div className="quiz-cards-container issued-cards">
-              {filteredItems.map((it, idx) => {
-                const expiresAtMs = it?.expiresAt ? new Date(it.expiresAt).getTime() : null;
-                const isExpired = typeof expiresAtMs === 'number' && !Number.isNaN(expiresAtMs) ? expiresAtMs < now : false;
-                const link = buildLink(it?.tokenId);
-                return (
-                  <div className="quiz-card" key={idx} style={{ cursor: 'default' }}>
-                    <div className="quiz-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <h3 className="quiz-title">Quiz creato #{idx + 1}</h3>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {it?.expiresAt && (
-                          <span className="stat-badge" title={`Scade il ${formatDateTime(it.expiresAt)}`}>⏳ {formatDateTime(it.expiresAt)}</span>
-                        )}
-                        <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
-                      </div>
-                    </div>
-                    <div className="quiz-card-body">
-                      <div className="quiz-details">
-                        <div className="quiz-details-row" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                          <strong>Link</strong>
-                          <div className="issued-link">{link || '-'}</div>
-                        </div>
-                        <div className="quiz-details-row" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                          <strong>Domande</strong>
-                          <span>{it?.numberOfQuestions ?? '-'}</span>
-                        </div>
-                        <div className="quiz-details-row" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                          <strong>Emesso il</strong>
-                          <span>{formatDateTime(it?.issuedAt)}</span>
-                        </div>
-                        <div className="quiz-details-row" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                          <strong>Scade il</strong>
-                          <span>{formatDateTime(it?.expiresAt)}</span>
-                        </div>
-                        <div className="quiz-details-row" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.75rem' }}>
-                          <strong>Durata</strong>
-                          <span>{formatDuration(it?.duration)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="quiz-card-footer">
-                      <div className="quiz-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <button
-                          className="quiz-action-btn secondary"
-                          type="button"
-                          disabled={!link}
-                          onClick={() => link && navigator.clipboard.writeText(link)}
-                        >Copia link</button>
-                        {link ? (
-                          isExpired ? (
-                            <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
-                          ) : (
-                            <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
-                          )
-                        ) : (
-                          <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
-                        )}
-                        <button
-                          className="quiz-action-btn secondary"
-                          type="button"
-                          disabled={!it?.tokenId}
-                          onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`)}
-                        >Dettagli tentativi</button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="table-responsive" style={{ overflowX: 'auto' }}>
+              <table className="table table-gray">
+                <thead>
+                  <tr>
+                    <th>Stato</th>
+                    <th>Link</th>
+                    <th>Domande</th>
+                    <th>Emesso il</th>
+                    <th>Scade il</th>
+                    <th>Durata</th>
+                    <th>Azione</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredItems.map((it, idx) => {
+                    const expiresAtMs = it?.expiresAt ? new Date(it.expiresAt).getTime() : null;
+                    const isExpired = typeof expiresAtMs === 'number' && !Number.isNaN(expiresAtMs) ? expiresAtMs < now : false;
+                    const link = buildLink(it?.tokenId);
+                    return (
+                      <tr key={idx} className={isExpired ? 'row-expired' : 'row-active'}>
+                        <td>
+                          <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
+                        </td>
+                        <td className="issued-link" style={{ wordBreak: 'break-all' }}>{link || '-'}</td>
+                        <td>{it?.numberOfQuestions ?? '-'}</td>
+                        <td>{formatDateTime(it?.issuedAt)}</td>
+                        <td>{formatDateTime(it?.expiresAt)}</td>
+                        <td>{formatDuration(it?.duration)}</td>
+                        <td>
+                          <div className="table-actions">
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!link}
+                              onClick={() => link && navigator.clipboard.writeText(link)}
+                            >Copia link</button>
+                            {link ? (
+                              isExpired ? (
+                                <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
+                              ) : (
+                                <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
+                              )
+                            ) : (
+                              <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
+                            )}
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!it?.tokenId}
+                              onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`)}
+                            >Dettagli</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

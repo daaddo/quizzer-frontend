@@ -92,7 +92,7 @@ const IssuedQuizInfosPage = () => {
             </div>
           ) : (
             <div className="table-responsive" style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
                     <th style={{ textAlign: 'left' }}>Utente</th>

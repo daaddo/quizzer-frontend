@@ -2325,3 +2325,61 @@ body {
 .modal-actions {
   flex-direction: column;
 } 
+
+/* Table styles for issued pages */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.table thead th {
+  text-align: left;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 12px 14px;
+  border-bottom: 2px solid #eceff4;
+  border-right: 1px solid #eceff4;
+}
+
+.table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #eceff4;
+  border-right: 1px solid #eceff4;
+  color: #374151;
+}
+
+.table-gray thead th {
+  background: #f7f8fa;
+}
+
+.table thead th:last-child,
+.table tbody td:last-child {
+  border-right: none;
+}
+
+.table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.row-expired td {
+  background: #fafafa;
+  color: #6b7280;
+}
+
+.row-active td {
+  background: #ffffff;
+}
+
+.table-responsive {
+  border: 1px solid #eceff4;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
