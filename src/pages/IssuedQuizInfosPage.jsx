@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
+import UpdateExpirationModal from '../components/UpdateExpirationModal';
 
 const IssuedQuizInfosPage = () => {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ const IssuedQuizInfosPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
+  const [expModal, setExpModal] = useState({ isOpen: false, token: null, initial: null });
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -40,6 +43,79 @@ const IssuedQuizInfosPage = () => {
       return d.toLocaleString();
     } catch {
       return String(value);
+    }
+  };
+
+  const normalizeDateTimeLocalToSeconds = (value) => {
+    if (!value) return null;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return `${value}:00`;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(value)) return value;
+    return null;
+  };
+
+  const handleDeleteAttempt = async (userId) => {
+    try {
+      const ok = window.confirm('Confermi l\'eliminazione del tentativo di questo utente?');
+      if (!ok) return;
+      await userApi.deleteAttempt(tokenId, userId);
+      setItems((prev) => prev.filter((x) => x?.userId !== userId));
+      alert('Tentativo eliminato');
+    } catch (e) {
+      alert(e.message || 'Errore eliminazione tentativo');
+    }
+  };
+
+  const openUpdateExpiration = () => {
+    setExpModal({ isOpen: true, token: tokenId, initial: null });
+  };
+
+  const handleConfirmUpdateExpiration = async (datetimeLocal) => {
+    const normalized = normalizeDateTimeLocalToSeconds(datetimeLocal);
+    if (!normalized) {
+      alert('Data non valida');
+      return;
+    }
+    try {
+      setModalLoading(true);
+      await userApi.updateIssuedExpiration(tokenId, normalized);
+      setExpModal({ isOpen: false, token: null, initial: null });
+      alert('Scadenza aggiornata');
+    } catch (e) {
+      alert(e.message || 'Errore aggiornamento scadenza');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleCancelUpdateExpiration = () => {
+    setExpModal({ isOpen: false, token: null, initial: null });
+  };
+
+  const handleUpdateNumberOfQuestions = async () => {
+    try {
+      const input = window.prompt('Nuovo numero di domande (> 0). Annulla per uscire.');
+      if (input == null || input.trim() === '') return;
+      const n = parseInt(input, 10);
+      if (!Number.isFinite(n) || n < 1) {
+        alert('Numero non valido');
+        return;
+      }
+      await userApi.updateIssuedNumberOfQuestions(tokenId, n);
+      alert('Numero di domande aggiornato');
+    } catch (e) {
+      alert(e.message || 'Errore aggiornamento numero domande');
+    }
+  };
+
+  const handleDeleteIssued = async () => {
+    try {
+      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
+      if (!ok) return;
+      await userApi.deleteIssuedQuiz(tokenId);
+      alert('Issued eliminato');
+      navigate(-1);
+    } catch (e) {
+      alert(e.message || 'Errore eliminazione issued');
     }
   };
 
@@ -80,8 +156,11 @@ const IssuedQuizInfosPage = () => {
         <div className="quiz-grid">
           <div className="quiz-section-header">
             <h2 className="quiz-section-title">Tentativi — Token: {tokenId}</h2>
-            <div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
+              <button className="btn btn-secondary" onClick={openUpdateExpiration}>Scadenza</button>
+              <button className="btn btn-secondary" onClick={handleUpdateNumberOfQuestions}>Domande</button>
+              <button className="btn btn-secondary" onClick={handleDeleteIssued}>Elimina issued</button>
             </div>
           </div>
 
@@ -100,6 +179,7 @@ const IssuedQuizInfosPage = () => {
                     <th style={{ textAlign: 'left' }}>Punteggio</th>
                     <th style={{ textAlign: 'left' }}>Iniziato</th>
                     <th style={{ textAlign: 'left' }}>Finito</th>
+                    <th style={{ textAlign: 'left' }}>Azione</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -110,6 +190,16 @@ const IssuedQuizInfosPage = () => {
                       <td>{it?.score ?? '-'}</td>
                       <td>{formatDateTime(it?.attemptedAt)}</td>
                       <td>{formatDateTime(it?.finishedAt)}</td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="quiz-action-btn secondary"
+                            type="button"
+                            disabled={!it?.userId}
+                            onClick={() => it?.userId && handleDeleteAttempt(it.userId)}
+                          >Elimina tentativo</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -118,6 +208,14 @@ const IssuedQuizInfosPage = () => {
           )}
         </div>
       </div>
+      <UpdateExpirationModal
+        isOpen={expModal.isOpen}
+        token={expModal.token}
+        initialExpiration={expModal.initial}
+        loading={modalLoading}
+        onConfirm={handleConfirmUpdateExpiration}
+        onCancel={handleCancelUpdateExpiration}
+      />
     </div>
   );
 };

@@ -785,6 +785,130 @@ class UserApiService {
       throw error;
     }
   }
+
+  /**
+   * Elimina il tentativo di un utente per un issued quiz
+   * DELETE /api/v1/quizzes/attempt?token=...&userId=...
+   * @param {string} token
+   * @param {number} userId
+   * @returns {Promise<void>}
+   */
+  async deleteAttempt(token, userId) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      if (userId == null) throw new Error('userId mancante');
+      const url = `${this.baseUrl}/api/v1/quizzes/attempt?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`;
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Tentativo non trovato');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error deleting attempt:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Aggiorna la scadenza di un issued quiz
+   * PUT /api/v1/quizzes/issued/expiration
+   * @param {string} token
+   * @param {string} expirationDateISO - formato YYYY-MM-DDTHH:mm:ss
+   * @returns {Promise<void>}
+   */
+  async updateIssuedExpiration(token, expirationDateISO) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      if (!expirationDateISO) throw new Error('Data di scadenza mancante');
+      const body = { token, expirationDate: expirationDateISO };
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes/issued/expiration`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Quiz emesso non trovato');
+        if (response.status === 400) throw new Error('Data di scadenza non valida');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error updating issued expiration:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Aggiorna il numero di domande di un issued quiz
+   * PUT /api/v1/quizzes/issued/number-of-questions
+   * @param {string} token
+   * @param {number} numberOfQuestions - > 0
+   * @returns {Promise<void>}
+   */
+  async updateIssuedNumberOfQuestions(token, numberOfQuestions) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      if (!numberOfQuestions || Number.isNaN(Number(numberOfQuestions)) || Number(numberOfQuestions) < 1) {
+        throw new Error('Numero domande non valido');
+      }
+      const body = { token, numberOfQuestions: Number(numberOfQuestions) };
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes/issued/number-of-questions`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Quiz emesso non trovato');
+        if (response.status === 400) throw new Error('Numero domande non valido');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error updating issued number of questions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Elimina un issued quiz
+   * DELETE /api/v1/quizzes/issued?token=...
+   * @param {string} token
+   * @returns {Promise<void>}
+   */
+  async deleteIssuedQuiz(token) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      const url = `${this.baseUrl}/api/v1/quizzes/issued?token=${encodeURIComponent(token)}`;
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Quiz emesso non trovato');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error deleting issued quiz:', error);
+      throw error;
+    }
+  }
 }
 
 // Esporta istanza singleton

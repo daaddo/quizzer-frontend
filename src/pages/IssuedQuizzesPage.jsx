@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
+import UpdateExpirationModal from '../components/UpdateExpirationModal';
 
 const IssuedQuizzesPage = () => {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ const IssuedQuizzesPage = () => {
   const [quiz, setQuiz] = useState(null);
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all'); // all | active | expired
+  const [expModal, setExpModal] = useState({ isOpen: false, token: null, initial: null });
+  const [modalLoading, setModalLoading] = useState(false);
 
   const now = useMemo(() => Date.now(), []);
 
@@ -66,6 +69,72 @@ const IssuedQuizzesPage = () => {
     if (typeof tokenId !== 'string' || !tokenId) return null;
     const origin = typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin : '';
     return `${origin}/takingquiz?token=${encodeURIComponent(tokenId)}`;
+  };
+
+  const normalizeDateTimeLocalToSeconds = (value) => {
+    if (!value) return null;
+    // Accept both YYYY-MM-DDTHH:mm and YYYY-MM-DDTHH:mm:ss
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return `${value}:00`;
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(value)) return value;
+    return null;
+  };
+
+  const openUpdateExpiration = (tokenId, initial) => {
+    if (!tokenId) return;
+    setExpModal({ isOpen: true, token: tokenId, initial });
+  };
+
+  const handleConfirmUpdateExpiration = async (datetimeLocal) => {
+    const tokenId = expModal.token;
+    const normalized = normalizeDateTimeLocalToSeconds(datetimeLocal);
+    if (!tokenId || !normalized) {
+      alert('Data non valida');
+      return;
+    }
+    try {
+      setModalLoading(true);
+      await userApi.updateIssuedExpiration(tokenId, normalized);
+      setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, expiresAt: normalized } : x)));
+      setExpModal({ isOpen: false, token: null, initial: null });
+      alert('Scadenza aggiornata');
+    } catch (e) {
+      alert(e.message || 'Errore aggiornamento scadenza');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleCancelUpdateExpiration = () => {
+    setExpModal({ isOpen: false, token: null, initial: null });
+  };
+
+  const handleUpdateNumberOfQuestions = async (tokenId) => {
+    try {
+      const input = window.prompt('Nuovo numero di domande (> 0). Annulla per uscire.');
+      if (input == null || input.trim() === '') return;
+      const n = parseInt(input, 10);
+      if (!Number.isFinite(n) || n < 1) {
+        alert('Numero non valido');
+        return;
+      }
+      await userApi.updateIssuedNumberOfQuestions(tokenId, n);
+      setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, numberOfQuestions: n } : x)));
+      alert('Numero di domande aggiornato');
+    } catch (e) {
+      alert(e.message || 'Errore aggiornamento numero domande');
+    }
+  };
+
+  const handleDeleteIssued = async (tokenId) => {
+    try {
+      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
+      if (!ok) return;
+      await userApi.deleteIssuedQuiz(tokenId);
+      setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
+      alert('Issued eliminato');
+    } catch (e) {
+      alert(e.message || 'Errore eliminazione issued');
+    }
   };
 
   if (loading) {
@@ -183,6 +252,24 @@ const IssuedQuizzesPage = () => {
                               disabled={!it?.tokenId}
                               onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`)}
                             >Dettagli</button>
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!it?.tokenId}
+                              onClick={() => openUpdateExpiration(it?.tokenId, it?.expiresAt)}
+                            >Scadenza</button>
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!it?.tokenId}
+                              onClick={() => handleUpdateNumberOfQuestions(it?.tokenId)}
+                            >Domande</button>
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!it?.tokenId}
+                              onClick={() => handleDeleteIssued(it?.tokenId)}
+                            >Elimina</button>
                           </div>
                         </td>
                       </tr>
@@ -194,6 +281,14 @@ const IssuedQuizzesPage = () => {
           )}
         </div>
       </div>
+      <UpdateExpirationModal
+        isOpen={expModal.isOpen}
+        token={expModal.token}
+        initialExpiration={expModal.initial}
+        loading={modalLoading}
+        onConfirm={handleConfirmUpdateExpiration}
+        onCancel={handleCancelUpdateExpiration}
+      />
     </div>
   );
 };
