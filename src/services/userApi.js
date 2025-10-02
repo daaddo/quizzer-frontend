@@ -722,6 +722,34 @@ class UserApiService {
   }
 
   /**
+   * Ottiene le informazioni tentativi per un issued quiz (per token)
+   * GET /api/v1/users/issued-quizzes-infos/{token}
+   * @param {string} tokenId
+   * @returns {Promise<Array>} List<UserQuizAttemptDto>
+   */
+  async getIssuedQuizInfos(tokenId) {
+    try {
+      if (!tokenId) throw new Error('Token mancante');
+      const response = await fetch(`${this.baseUrl}/api/v1/users/issued-quizzes-infos/${encodeURIComponent(tokenId)}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Quiz emesso non trovato');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching issued quiz infos:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Invia le risposte per un quiz identificato da token
    * @param {string} token
    * @param {Record<number, number[]>} answersMap - Mappa { questionId: [answerId, ...] }

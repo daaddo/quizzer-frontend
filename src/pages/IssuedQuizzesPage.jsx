@@ -11,6 +11,7 @@ const IssuedQuizzesPage = () => {
   const [error, setError] = useState(null);
   const [quiz, setQuiz] = useState(null);
   const [items, setItems] = useState([]);
+  const [filter, setFilter] = useState('all'); // all | active | expired
 
   const now = useMemo(() => Date.now(), []);
 
@@ -98,13 +99,26 @@ const IssuedQuizzesPage = () => {
     );
   }
 
+  const filteredItems = items.filter((it) => {
+    const expiresAtMs = it?.expiresAt ? new Date(it.expiresAt).getTime() : null;
+    const isExpired = typeof expiresAtMs === 'number' && !Number.isNaN(expiresAtMs) ? expiresAtMs < now : false;
+    if (filter === 'active') return !isExpired;
+    if (filter === 'expired') return isExpired;
+    return true;
+  });
+
   return (
     <div className="dashboard">
       <div className="container">
         <div className="quiz-grid">
           <div className="quiz-section-header">
             <h2 className="quiz-section-title">Quiz creati — {quiz?.title || `Quiz #${quizId}`}</h2>
-            <div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="view-toggle" role="tablist" aria-label="Filtro">
+                <button className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')}>Tutti</button>
+                <button className={`btn ${filter === 'active' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('active')}>In corso</button>
+                <button className={`btn ${filter === 'expired' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('expired')}>Scaduti</button>
+              </div>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
             </div>
           </div>
@@ -119,15 +133,20 @@ const IssuedQuizzesPage = () => {
             </div>
           ) : (
             <div className="quiz-cards-container issued-cards">
-              {items.map((it, idx) => {
+              {filteredItems.map((it, idx) => {
                 const expiresAtMs = it?.expiresAt ? new Date(it.expiresAt).getTime() : null;
                 const isExpired = typeof expiresAtMs === 'number' && !Number.isNaN(expiresAtMs) ? expiresAtMs < now : false;
                 const link = buildLink(it?.tokenId);
                 return (
                   <div className="quiz-card" key={idx} style={{ cursor: 'default' }}>
-                    <div className="quiz-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                    <div className="quiz-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <h3 className="quiz-title">Quiz creato #{idx + 1}</h3>
-                      <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {it?.expiresAt && (
+                          <span className="stat-badge" title={`Scade il ${formatDateTime(it.expiresAt)}`}>⏳ {formatDateTime(it.expiresAt)}</span>
+                        )}
+                        <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
+                      </div>
                     </div>
                     <div className="quiz-card-body">
                       <div className="quiz-details">
@@ -170,6 +189,12 @@ const IssuedQuizzesPage = () => {
                         ) : (
                           <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
                         )}
+                        <button
+                          className="quiz-action-btn secondary"
+                          type="button"
+                          disabled={!it?.tokenId}
+                          onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`)}
+                        >Dettagli tentativi</button>
                       </div>
                     </div>
                   </div>

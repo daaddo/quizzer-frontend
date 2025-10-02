@@ -14,6 +14,7 @@ import TestResults from './pages/TestResults'
 import OidcCallback from './pages/OidcCallback'
 import TakingQuiz from './pages/TakingQuiz'
 import IssuedQuizzesPage from './pages/IssuedQuizzesPage'
+import IssuedQuizInfosPage from './pages/IssuedQuizInfosPage'
 
 function App() {
   return (
@@ -71,6 +72,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TakingQuiz />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/issued/:tokenId" 
+              element={
+                <ProtectedRoute>
+                  <IssuedQuizInfosPage />
                 </ProtectedRoute>
               } 
             />

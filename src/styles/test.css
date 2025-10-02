@@ -250,14 +250,15 @@
 
 /* Riduzione ~30% in modalità A cascata */
 .takingquiz-theme.fullpage-mode .fullpage-navigation {
-  padding: 1.4rem;
+  padding: 0.9rem;
+  gap: 0.5rem;
 }
 .takingquiz-theme.fullpage-mode .fullpage-navigation .btn-large {
-  padding: 0.7rem 1.4rem;
-  font-size: 0.9rem;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
 }
 .takingquiz-theme.fullpage-mode .answered-count {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .btn-large {
