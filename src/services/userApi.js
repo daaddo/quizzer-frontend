@@ -909,6 +909,42 @@ class UserApiService {
       throw error;
     }
   }
+
+  /**
+   * Restituisce le domande complete dato un token
+   * GET /api/v1/quizzes/questions-by-token?token=...
+   * @param {string} token
+   * @returns {Promise<Array<{ id:number, title:string, question:string, answers:Array<{ id:number, answer:string, correct:boolean }> }>>}
+   */
+  async getQuestionsByTokenWithPayload(token, questionsPayload) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      if (!questionsPayload || typeof questionsPayload !== 'object') {
+        throw new Error('Payload domande non valido');
+      }
+      const url = `${this.baseUrl}/api/v1/quizzes/questions-by-token`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ token, questions: questionsPayload })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Token o domande non trovati');
+        if (response.status === 400) throw new Error('Richiesta non valida');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching questions by token (GET):', error);
+      throw error;
+    }
+  }
 }
 
 // Esporta istanza singleton

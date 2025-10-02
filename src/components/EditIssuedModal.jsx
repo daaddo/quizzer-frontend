@@ -97,11 +97,6 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
         </div>
 
         <div className="modal-body">
-          {token && (
-            <div className="test-config-info" style={{ marginBottom: '0.5rem' }}>
-              <strong>Token:</strong> <span style={{ wordBreak: 'break-all' }}>{token}</span>
-            </div>
-          )}
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="form-group">
               <label className="form-label" htmlFor="ei-qn">Numero di domande</label>

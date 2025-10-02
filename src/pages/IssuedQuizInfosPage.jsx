@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import EditIssuedModal from '../components/EditIssuedModal';
+import AttemptResultsModal from '../components/AttemptResultsModal';
 
 const IssuedQuizInfosPage = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const IssuedQuizInfosPage = () => {
   const [items, setItems] = useState([]);
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
+  const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [] });
 
   useEffect(() => {
     const load = async () => {
@@ -95,6 +97,20 @@ const IssuedQuizInfosPage = () => {
 
   // Eliminazione issued non esposta qui per richiesta: rimossa dalla UI
 
+  const handleOpenResults = async (attemptItem) => {
+    try {
+      setResultsModal({ isOpen: true, loading: true, error: null, questions: [] });
+      const data = await userApi.getQuestionsByTokenWithPayload(tokenId);
+      setResultsModal({ isOpen: true, loading: false, error: null, questions: Array.isArray(data) ? data : [] });
+    } catch (e) {
+      setResultsModal({ isOpen: true, loading: false, error: e.message || 'Errore caricamento risultati', questions: [] });
+    }
+  };
+
+  const handleCloseResults = () => {
+    setResultsModal({ isOpen: false, loading: false, error: null, questions: [] });
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -126,20 +142,14 @@ const IssuedQuizInfosPage = () => {
      );
    }
  
-  const buildLink = (token) => {
-    if (!token) return null;
-    const origin = typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin : '';
-    return `${origin}/takingquiz?token=${encodeURIComponent(token)}`;
-  };
-
-  const link = buildLink(tokenId);
+  // Link rimosso dalla pagina dettagli su richiesta
 
   return (
     <div className="dashboard">
       <div className="container">
         <div className="quiz-grid">
           <div className="quiz-section-header">
-            <h2 className="quiz-section-title">Tentativi — Token: {tokenId}</h2>
+            <h2 className="quiz-section-title">Tentativi</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
               <button className="btn btn-secondary" onClick={openEditIssued} title="Modifica" aria-label="Modifica issued">
@@ -148,12 +158,7 @@ const IssuedQuizInfosPage = () => {
                   <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
                 </svg>
               </button>
-              {link && (
-                <div className="issued-link" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ wordBreak: 'break-all' }}>{link}</span>
-                  <button className="btn btn-secondary" type="button" onClick={() => navigator.clipboard.writeText(link)}>Copia link</button>
-                </div>
-              )}
+              
             </div>
           </div>
 
@@ -184,15 +189,20 @@ const IssuedQuizInfosPage = () => {
                       <td>{formatDateTime(it?.attemptedAt)}</td>
                       <td>{formatDateTime(it?.finishedAt)}</td>
                       <td>
-                        <div className="table-actions">
+                         <div className="table-actions">
+                          <button
+                            className="quiz-action-btn primary"
+                            type="button"
+                            onClick={() => handleOpenResults(it)}
+                          >Risultati</button>
                           <button
                             className="quiz-action-btn secondary"
                             type="button"
                             disabled={!it?.userId}
                             onClick={() => it?.userId && handleDeleteAttempt(it.userId)}
                           >Elimina tentativo</button>
-                        </div>
-                      </td>
+                         </div>
+                       </td>
                     </tr>
                   ))}
                 </tbody>
@@ -210,6 +220,13 @@ const IssuedQuizInfosPage = () => {
         loading={modalLoading}
         onConfirm={handleConfirmEditIssued}
         onCancel={handleCancelEditIssued}
+      />
+      <AttemptResultsModal
+        isOpen={resultsModal.isOpen}
+        loading={resultsModal.loading}
+        error={resultsModal.error}
+        questions={resultsModal.questions}
+        onClose={handleCloseResults}
       />
     </div>
   );
