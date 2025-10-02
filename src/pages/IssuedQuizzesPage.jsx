@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
-import UpdateExpirationModal from '../components/UpdateExpirationModal';
+import EditIssuedModal from '../components/EditIssuedModal';
 
 const IssuedQuizzesPage = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const IssuedQuizzesPage = () => {
   const [quiz, setQuiz] = useState(null);
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all'); // all | active | expired
-  const [expModal, setExpModal] = useState({ isOpen: false, token: null, initial: null });
+  const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
 
   const now = useMemo(() => Date.now(), []);
@@ -79,63 +79,41 @@ const IssuedQuizzesPage = () => {
     return null;
   };
 
-  const openUpdateExpiration = (tokenId, initial) => {
+  const openEditIssued = (tokenId, initialNumber, initialExpiration) => {
     if (!tokenId) return;
-    setExpModal({ isOpen: true, token: tokenId, initial });
+    setEditModal({ isOpen: true, token: tokenId, initialNumber, initialExpiration });
   };
 
-  const handleConfirmUpdateExpiration = async (datetimeLocal) => {
-    const tokenId = expModal.token;
-    const normalized = normalizeDateTimeLocalToSeconds(datetimeLocal);
-    if (!tokenId || !normalized) {
-      alert('Data non valida');
-      return;
-    }
+  const handleConfirmEditIssued = async ({ numberOfQuestions, expirationDate }) => {
+    const tokenId = editModal.token;
+    if (!tokenId) return;
     try {
       setModalLoading(true);
-      await userApi.updateIssuedExpiration(tokenId, normalized);
-      setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, expiresAt: normalized } : x)));
-      setExpModal({ isOpen: false, token: null, initial: null });
-      alert('Scadenza aggiornata');
+      // Apply updates selectively
+      if (numberOfQuestions != null) {
+        await userApi.updateIssuedNumberOfQuestions(tokenId, numberOfQuestions);
+        setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, numberOfQuestions } : x)));
+      }
+      if (expirationDate != null) {
+        const normalized = normalizeDateTimeLocalToSeconds(expirationDate);
+        if (!normalized) throw new Error('Data scadenza non valida');
+        await userApi.updateIssuedExpiration(tokenId, normalized);
+        setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, expiresAt: normalized } : x)));
+      }
+      setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
+      alert('Issued aggiornato');
     } catch (e) {
-      alert(e.message || 'Errore aggiornamento scadenza');
+      alert(e.message || 'Errore aggiornamento issued');
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleCancelUpdateExpiration = () => {
-    setExpModal({ isOpen: false, token: null, initial: null });
+  const handleCancelEditIssued = () => {
+    setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   };
 
-  const handleUpdateNumberOfQuestions = async (tokenId) => {
-    try {
-      const input = window.prompt('Nuovo numero di domande (> 0). Annulla per uscire.');
-      if (input == null || input.trim() === '') return;
-      const n = parseInt(input, 10);
-      if (!Number.isFinite(n) || n < 1) {
-        alert('Numero non valido');
-        return;
-      }
-      await userApi.updateIssuedNumberOfQuestions(tokenId, n);
-      setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, numberOfQuestions: n } : x)));
-      alert('Numero di domande aggiornato');
-    } catch (e) {
-      alert(e.message || 'Errore aggiornamento numero domande');
-    }
-  };
-
-  const handleDeleteIssued = async (tokenId) => {
-    try {
-      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
-      if (!ok) return;
-      await userApi.deleteIssuedQuiz(tokenId);
-      setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
-      alert('Issued eliminato');
-    } catch (e) {
-      alert(e.message || 'Errore eliminazione issued');
-    }
-  };
+  // Pulsanti singoli rimossi in favore di un'unica azione Modifica
 
   if (loading) {
     return (
@@ -206,7 +184,6 @@ const IssuedQuizzesPage = () => {
                 <thead>
                   <tr>
                     <th>Stato</th>
-                    <th>Link</th>
                     <th>Domande</th>
                     <th>Emesso il</th>
                     <th>Scade il</th>
@@ -218,33 +195,22 @@ const IssuedQuizzesPage = () => {
                   {filteredItems.map((it, idx) => {
                     const expiresAtMs = it?.expiresAt ? new Date(it.expiresAt).getTime() : null;
                     const isExpired = typeof expiresAtMs === 'number' && !Number.isNaN(expiresAtMs) ? expiresAtMs < now : false;
-                    const link = buildLink(it?.tokenId);
+                    const link = null; // Link rimosso dalla lista
                     return (
                       <tr key={idx} className={isExpired ? 'row-expired' : 'row-active'}>
                         <td>
                           <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
                         </td>
-                        <td className="issued-link" style={{ wordBreak: 'break-all' }}>{link || '-'}</td>
                         <td>{it?.numberOfQuestions ?? '-'}</td>
                         <td>{formatDateTime(it?.issuedAt)}</td>
                         <td>{formatDateTime(it?.expiresAt)}</td>
                         <td>{formatDuration(it?.duration)}</td>
                         <td>
                           <div className="table-actions">
-                            <button
-                              className="quiz-action-btn secondary"
-                              type="button"
-                              disabled={!link}
-                              onClick={() => link && navigator.clipboard.writeText(link)}
-                            >Copia link</button>
-                            {link ? (
-                              isExpired ? (
-                                <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
-                              ) : (
-                                <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
-                              )
-                            ) : (
+                            {isExpired ? (
                               <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
+                            ) : (
+                              <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
                             )}
                             <button
                               className="quiz-action-btn secondary"
@@ -256,20 +222,15 @@ const IssuedQuizzesPage = () => {
                               className="quiz-action-btn secondary"
                               type="button"
                               disabled={!it?.tokenId}
-                              onClick={() => openUpdateExpiration(it?.tokenId, it?.expiresAt)}
-                            >Scadenza</button>
-                            <button
-                              className="quiz-action-btn secondary"
-                              type="button"
-                              disabled={!it?.tokenId}
-                              onClick={() => handleUpdateNumberOfQuestions(it?.tokenId)}
-                            >Domande</button>
-                            <button
-                              className="quiz-action-btn secondary"
-                              type="button"
-                              disabled={!it?.tokenId}
-                              onClick={() => handleDeleteIssued(it?.tokenId)}
-                            >Elimina</button>
+                              title="Modifica"
+                              aria-label="Modifica issued"
+                              onClick={() => openEditIssued(it?.tokenId, it?.numberOfQuestions ?? null, it?.expiresAt ?? null)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
+                                <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
+                              </svg>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -281,13 +242,15 @@ const IssuedQuizzesPage = () => {
           )}
         </div>
       </div>
-      <UpdateExpirationModal
-        isOpen={expModal.isOpen}
-        token={expModal.token}
-        initialExpiration={expModal.initial}
+      <EditIssuedModal
+        isOpen={editModal.isOpen}
+        token={editModal.token}
+        initialNumberOfQuestions={editModal.initialNumber}
+        initialExpiration={editModal.initialExpiration}
+        maxQuestions={quiz?.questionCount || null}
         loading={modalLoading}
-        onConfirm={handleConfirmUpdateExpiration}
-        onCancel={handleCancelUpdateExpiration}
+        onConfirm={handleConfirmEditIssued}
+        onCancel={handleCancelEditIssued}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
-import UpdateExpirationModal from '../components/UpdateExpirationModal';
+import EditIssuedModal from '../components/EditIssuedModal';
 
 const IssuedQuizInfosPage = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const IssuedQuizInfosPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
-  const [expModal, setExpModal] = useState({ isOpen: false, token: null, initial: null });
+  const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
@@ -65,59 +65,35 @@ const IssuedQuizInfosPage = () => {
     }
   };
 
-  const openUpdateExpiration = () => {
-    setExpModal({ isOpen: true, token: tokenId, initial: null });
+  const openEditIssued = () => {
+    setEditModal({ isOpen: true, token: tokenId, initialNumber: null, initialExpiration: null });
   };
 
-  const handleConfirmUpdateExpiration = async (datetimeLocal) => {
-    const normalized = normalizeDateTimeLocalToSeconds(datetimeLocal);
-    if (!normalized) {
-      alert('Data non valida');
-      return;
-    }
+  const handleConfirmEditIssued = async ({ numberOfQuestions, expirationDate }) => {
     try {
       setModalLoading(true);
-      await userApi.updateIssuedExpiration(tokenId, normalized);
-      setExpModal({ isOpen: false, token: null, initial: null });
-      alert('Scadenza aggiornata');
+      if (numberOfQuestions != null) {
+        await userApi.updateIssuedNumberOfQuestions(tokenId, numberOfQuestions);
+      }
+      if (expirationDate != null) {
+        const normalized = normalizeDateTimeLocalToSeconds(expirationDate);
+        if (!normalized) throw new Error('Data scadenza non valida');
+        await userApi.updateIssuedExpiration(tokenId, normalized);
+      }
+      setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
+      alert('Issued aggiornato');
     } catch (e) {
-      alert(e.message || 'Errore aggiornamento scadenza');
+      alert(e.message || 'Errore aggiornamento issued');
     } finally {
       setModalLoading(false);
     }
   };
 
-  const handleCancelUpdateExpiration = () => {
-    setExpModal({ isOpen: false, token: null, initial: null });
+  const handleCancelEditIssued = () => {
+    setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   };
 
-  const handleUpdateNumberOfQuestions = async () => {
-    try {
-      const input = window.prompt('Nuovo numero di domande (> 0). Annulla per uscire.');
-      if (input == null || input.trim() === '') return;
-      const n = parseInt(input, 10);
-      if (!Number.isFinite(n) || n < 1) {
-        alert('Numero non valido');
-        return;
-      }
-      await userApi.updateIssuedNumberOfQuestions(tokenId, n);
-      alert('Numero di domande aggiornato');
-    } catch (e) {
-      alert(e.message || 'Errore aggiornamento numero domande');
-    }
-  };
-
-  const handleDeleteIssued = async () => {
-    try {
-      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
-      if (!ok) return;
-      await userApi.deleteIssuedQuiz(tokenId);
-      alert('Issued eliminato');
-      navigate(-1);
-    } catch (e) {
-      alert(e.message || 'Errore eliminazione issued');
-    }
-  };
+  // Eliminazione issued non esposta qui per richiesta: rimossa dalla UI
 
   if (loading) {
     return (
@@ -134,21 +110,29 @@ const IssuedQuizInfosPage = () => {
   }
 
   if (error) {
-    return (
-      <div className="dashboard-error">
-        <div className="container">
-          <div className="error-content">
-            <div className="error-icon">❌</div>
-            <h2>Impossibile caricare</h2>
-            <p>{error}</p>
-            <div className="error-actions">
-              <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+     return (
+       <div className="dashboard-error">
+         <div className="container">
+           <div className="error-content">
+             <div className="error-icon">❌</div>
+             <h2>Impossibile caricare</h2>
+             <p>{error}</p>
+             <div className="error-actions">
+               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
+             </div>
+           </div>
+         </div>
+       </div>
+     );
+   }
+ 
+  const buildLink = (token) => {
+    if (!token) return null;
+    const origin = typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin : '';
+    return `${origin}/takingquiz?token=${encodeURIComponent(token)}`;
+  };
+
+  const link = buildLink(tokenId);
 
   return (
     <div className="dashboard">
@@ -158,9 +142,18 @@ const IssuedQuizInfosPage = () => {
             <h2 className="quiz-section-title">Tentativi — Token: {tokenId}</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
-              <button className="btn btn-secondary" onClick={openUpdateExpiration}>Scadenza</button>
-              <button className="btn btn-secondary" onClick={handleUpdateNumberOfQuestions}>Domande</button>
-              <button className="btn btn-secondary" onClick={handleDeleteIssued}>Elimina issued</button>
+              <button className="btn btn-secondary" onClick={openEditIssued} title="Modifica" aria-label="Modifica issued">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
+                  <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
+                </svg>
+              </button>
+              {link && (
+                <div className="issued-link" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ wordBreak: 'break-all' }}>{link}</span>
+                  <button className="btn btn-secondary" type="button" onClick={() => navigator.clipboard.writeText(link)}>Copia link</button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -208,13 +201,15 @@ const IssuedQuizInfosPage = () => {
           )}
         </div>
       </div>
-      <UpdateExpirationModal
-        isOpen={expModal.isOpen}
-        token={expModal.token}
-        initialExpiration={expModal.initial}
+      <EditIssuedModal
+        isOpen={editModal.isOpen}
+        token={editModal.token}
+        initialNumberOfQuestions={editModal.initialNumber}
+        initialExpiration={editModal.initialExpiration}
+        maxQuestions={null}
         loading={modalLoading}
-        onConfirm={handleConfirmUpdateExpiration}
-        onCancel={handleCancelUpdateExpiration}
+        onConfirm={handleConfirmEditIssued}
+        onCancel={handleCancelEditIssued}
       />
     </div>
   );
