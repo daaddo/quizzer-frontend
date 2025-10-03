@@ -81,16 +81,16 @@ const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, on
       <div className="quiz-card-footer">
         <div className="quiz-actions">
           <div className="quiz-actions-primary">
-            <button className="quiz-action-btn primary" title="Visualizza Quiz">
-              Visualizza Quiz
+            <button className="quiz-action-btn primary" title="Domande">
+              Domande
             </button>
             <button 
               className="quiz-action-btn primary"
               onClick={handleViewIssued}
-              title="Visualizza quiz creati"
+              title="Quiz creati"
               disabled={!quiz?.id && quiz?.id !== 0}
             >
-              Visualizza quiz creati
+              Quiz creati
             </button>
           </div>
           <div className="quiz-actions-secondary">

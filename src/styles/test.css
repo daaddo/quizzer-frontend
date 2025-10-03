@@ -332,7 +332,7 @@
 .test-question {
   background: white;
   border-radius: 15px;
-  padding: 2.5rem;
+  padding: 2rem; /* leggera riduzione padding card */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 800px;
@@ -348,6 +348,33 @@
   font-weight: 600;
   display: inline-block;
   margin-bottom: 1rem;
+}
+
+/* Icona esito domanda accanto al numero */
+.question-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.question-result-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: 700;
+  line-height: 1;
+}
+.question-result-icon.correct {
+  background: #e6ffed;
+  color: #2f855a; /* verde */
+  border: 1px solid #9ae6b4;
+}
+.question-result-icon.incorrect {
+  background: #ffe6e6;
+  color: #c53030; /* rosso */
+  border: 1px solid #feb2b2;
 }
 
 .question-title {
@@ -368,11 +395,11 @@
 }
 
 .question-content { /* container around text and answers in JSX */
-  padding: 1.5rem 0 0 0;
+  padding: 1rem 0 0.5rem 0; /* ridotto spazio generale e fondo container */
 }
 
 .answers-container {
-  margin-top: 1rem;
+  margin-top: 0.5rem; /* ridotto spazio sopra le risposte */
 }
 
 .answer-type-hint {
@@ -386,10 +413,10 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.75rem; /* ridotta spaziatura interna */
   border: 2px solid #e2e8f0;
   border-radius: 8px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem; /* ridotta distanza tra risposte */
   cursor: pointer;
   transition: all 0.2s ease;
 }

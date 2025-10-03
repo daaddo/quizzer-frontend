@@ -370,10 +370,24 @@ const TakingQuiz = () => {
     const result = results ? results[qid] : null;
     const correctSet = result ? new Set(result.correctOptions || []) : null;
     const showColors = !!results;
+    let isQuestionCorrect = null;
+    if (result) {
+      const sel = new Set(result.selectedOptions || []);
+      const cor = new Set(result.correctOptions || []);
+      isQuestionCorrect = sel.size === cor.size && [...sel].every(v => cor.has(v));
+    }
     return (
       <div className={`question-card test-question ${isSingle ? '' : 'fullpage-question'}`} id={`question-${idx}`} key={`${q.quizId}-${idx}`}>
         <div className="question-header">
           <div className="question-number">Domanda {idx + 1}</div>
+          {showColors && isQuestionCorrect !== null && (
+            <span
+              className={`question-result-icon ${isQuestionCorrect ? 'correct' : 'incorrect'}`}
+              aria-label={isQuestionCorrect ? 'Risposta corretta' : 'Risposta errata'}
+            >
+              {isQuestionCorrect ? 'V' : 'X'}
+            </span>
+          )}
           {q.title && <div className="question-title">{q.title}</div>}
         </div>
         <div className="question-content">
