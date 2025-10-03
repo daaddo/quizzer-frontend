@@ -6,7 +6,10 @@
 /* ===== DASHBOARD MAIN ===== */
 .dashboard {
   min-height: calc(100vh - 140px);
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)), url('/src/assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   padding: 2rem 0;
 }
 
