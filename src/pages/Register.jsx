@@ -146,11 +146,11 @@ const Register = () => {
 
   return (
     <div className="auth-page auth-bg">
-      <div className="container">
+      <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div className="auth-card">
-          <div className="auth-header">
-            <h1>Registrazione</h1>
-            <p>Crea il tuo account per iniziare</p>
+          <div className="auth-header" style={{ textAlign: 'center' }}>
+            <h1 className="login-title" style={{ marginBottom: '0.5rem' }}>Registrazione</h1>
+            <p className="login-subtitle">Crea il tuo account per iniziare</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -161,7 +161,7 @@ const Register = () => {
             )}
 
             {/* Row 1: Username (full width) + Email (full width) */}
-            <div className="register-grid" style={{ rowGap: '0.5rem' }}>
+            <div className="register-grid" style={{ rowGap: '0.75rem' }}>
               <div className="form-group col-span-2" style={{ marginBottom: 0 }}>
                 <input
                   id="username"

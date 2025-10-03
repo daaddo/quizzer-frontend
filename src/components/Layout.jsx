@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import Header from './Header'
 import Footer from './Footer'
 import { authService } from '../services/auth.js'
+import { useLocation } from 'react-router-dom'
 
 const Layout = ({ children }) => {
   // Keep-alive ping ogni 20 minuti allo status della sessione
@@ -24,13 +25,16 @@ const Layout = ({ children }) => {
     };
   }, []);
 
+  const location = useLocation();
+  const hideChrome = location.pathname === '/login' || location.pathname === '/register';
+
   return (
     <div className="App">
-      <Header />
+      {!hideChrome && <Header />}
       <main className="main-content">
         {children}
       </main>
-      <Footer />
+      {!hideChrome && <Footer />}
     </div>
   )
 }

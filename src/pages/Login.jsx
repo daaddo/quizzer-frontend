@@ -78,11 +78,12 @@ const Login = () => {
 
   return (
     <div className="auth-page auth-bg">
-      <div className="container">
+      <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div className="auth-card login-card">
             <div className="login-header">
-              <h1 className="login-title">Accesso Quizzer</h1>
-              <p className="login-subtitle">
+              <img src="/src/assets/logo.png" alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
+              <h1 className="login-title" style={{ textAlign: 'center' }}>Accesso Quizzer</h1>
+              <p className="login-subtitle" style={{ textAlign: 'center' }}>
                 Accedi al tuo account per entrare nella tua area personale
               </p>
             </div>
@@ -193,7 +194,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

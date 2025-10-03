@@ -40,6 +40,9 @@ body {
   color: white;
   padding: 1rem 0;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .nav {
@@ -161,11 +164,12 @@ body {
 
 /* Auth pages centering */
 .auth-page {
-  min-height: calc(100vh - 140px);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  padding: 0;
 }
 
 .auth-page > .container {
@@ -1294,6 +1298,7 @@ body {
 /* Answers Container */
 .answers-container {
   transition: all 0.3s ease;
+  margin-bottom: 0; /* riduce spazio inferiore */
 }
 
 .answers-container.hidden {
@@ -1595,8 +1600,7 @@ body {
 
 /* Auth background (login + register) */
 .auth-bg {
-  
-  background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url('/src/assets/auth-bg.jpg');
+  background-image: linear-gradient(rgba(15, 23, 42, 0.188), rgba(15, 23, 42, 0.55)), url('/src/assets/auth-bg.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -2145,6 +2149,32 @@ body {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
+}
+
+/* Distinzione bottoni nel modal crea domanda */
+.create-question-modal .btn.btn-secondary {
+  background: #e2e8f0;
+  color: #1f2937;
+}
+
+.create-question-modal .btn.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.question-info-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.question-info-panel ul {
+  margin: 0;
+  padding-left: 1.1rem;
 }
 
 @keyframes modalFadeIn {
