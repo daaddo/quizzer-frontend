@@ -159,7 +159,7 @@ const IssuedQuizzesPage = () => {
       <div className="container">
         <div className="quiz-grid">
           <div className="quiz-section-header">
-            <h2 className="quiz-section-title">Quiz creati — {quiz?.title || `Quiz #${quizId}`}</h2>
+            <h2 className="quiz-section-title">{quiz?.title || `Quiz #${quizId}`}</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <div className="view-toggle" role="tablist" aria-label="Filtro">
                 <button className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')}>Tutti</button>

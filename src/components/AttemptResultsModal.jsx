@@ -7,9 +7,10 @@ import React, { useEffect } from 'react';
  *  - loading: boolean
  *  - error: string|null
  *  - questions: Array<{ id, title, question, answers: [{ id, answer, correct }] }>
+ *  - selectionsByQuestion: Record<number, number[]> | null // mappa questionId -> selectedOptions ids
  *  - onClose: () => void
  */
-const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions = [], onClose }) => {
+const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions = [], selectionsByQuestion = null, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       const scrollY = window.scrollY;
@@ -68,22 +69,31 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                   </tr>
                 </thead>
                 <tbody>
-                  {questions.map((q) => (
+                  {questions.map((q) => {
+                    const selectedIds = Array.isArray(selectionsByQuestion?.[q.id]) ? selectionsByQuestion[q.id] : [];
+                    return (
                     <tr key={q.id}>
                       <td>{q.title || '-'}</td>
                       <td style={{ whiteSpace: 'pre-wrap' }}>{q.question || '-'}</td>
                       <td>
                         <ul style={{ paddingLeft: '1rem', margin: 0 }}>
-                          {(q.answers || []).map((a) => (
-                            <li key={a.id} style={{ color: a.correct ? '#0b7' : undefined }}>
-                              {a.answer}
-                              {a.correct ? ' (corretta)' : ''}
-                            </li>
-                          ))}
+                          {(q.answers || []).map((a) => {
+                            const isSelected = selectedIds.includes(a.id);
+                            const isCorrect = !!a.correct;
+                            const color = isCorrect ? '#0b7' : (isSelected ? '#dc3545' : undefined);
+                            return (
+                              <li key={a.id} style={{ color }}>
+                                {a.answer}
+                                {isSelected && ' (selezionata)'}
+                                {isCorrect && ' (corretta)'}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -911,9 +911,10 @@ class UserApiService {
   }
 
   /**
-   * Restituisce le domande complete dato un token
-   * GET /api/v1/quizzes/questions-by-token?token=...
+   * Restituisce le domande complete dato un token e payload di domande
+   * POST /api/v1/quizzes/questions-by-token
    * @param {string} token
+   * @param {Record<number, { selectedOptions?: number[], correctOptions?: number[] }>} questionsPayload
    * @returns {Promise<Array<{ id:number, title:string, question:string, answers:Array<{ id:number, answer:string, correct:boolean }> }>>}
    */
   async getQuestionsByTokenWithPayload(token, questionsPayload) {
@@ -924,7 +925,7 @@ class UserApiService {
       }
       const url = `${this.baseUrl}/api/v1/quizzes/questions-by-token`;
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({ token, questions: questionsPayload })
@@ -941,7 +942,7 @@ class UserApiService {
       const data = await response.json();
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.error('Error fetching questions by token (GET):', error);
+      console.error('Error fetching questions by token (POST):', error);
       throw error;
     }
   }

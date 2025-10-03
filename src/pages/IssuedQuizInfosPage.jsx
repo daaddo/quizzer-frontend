@@ -14,7 +14,7 @@ const IssuedQuizInfosPage = () => {
   const [items, setItems] = useState([]);
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
-  const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [] });
+  const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {} });
 
   useEffect(() => {
     const load = async () => {
@@ -98,17 +98,37 @@ const IssuedQuizInfosPage = () => {
   // Eliminazione issued non esposta qui per richiesta: rimossa dalla UI
 
   const handleOpenResults = async (attemptItem) => {
-    try {
-      setResultsModal({ isOpen: true, loading: true, error: null, questions: [] });
-      const data = await userApi.getQuestionsByTokenWithPayload(tokenId);
-      setResultsModal({ isOpen: true, loading: false, error: null, questions: Array.isArray(data) ? data : [] });
+     try {
+      // Parse selections map from attempt
+      let selectionsMap = {};
+      try {
+        if (attemptItem && typeof attemptItem.questions === 'string') {
+          const parsed = JSON.parse(attemptItem.questions || '{}') || {};
+          // normalize to questionId -> selectedOptions[]
+          selectionsMap = Object.fromEntries(Object.entries(parsed).map(([qid, v]) => [Number(qid), Array.isArray(v?.selectedOptions) ? v.selectedOptions : []]));
+        } else if (attemptItem && typeof attemptItem.questions === 'object' && attemptItem.questions) {
+          const obj = attemptItem.questions;
+          selectionsMap = Object.fromEntries(Object.entries(obj).map(([qid, v]) => [Number(qid), Array.isArray(v?.selectedOptions) ? v.selectedOptions : []]));
+        }
+      } catch {}
+      setResultsModal({ isOpen: true, loading: true, error: null, questions: [], selectionsByQuestion: selectionsMap });
+      let questionsPayload = {};
+      try {
+        if (attemptItem && typeof attemptItem.questions === 'string') {
+          questionsPayload = JSON.parse(attemptItem.questions || '{}') || {};
+        } else if (attemptItem && typeof attemptItem.questions === 'object' && attemptItem.questions) {
+          questionsPayload = attemptItem.questions;
+        }
+      } catch {}
+      const data = await userApi.getQuestionsByTokenWithPayload(tokenId, questionsPayload);
+      setResultsModal((prev) => ({ ...prev, isOpen: true, loading: false, error: null, questions: Array.isArray(data) ? data : [] }));
     } catch (e) {
-      setResultsModal({ isOpen: true, loading: false, error: e.message || 'Errore caricamento risultati', questions: [] });
+      setResultsModal((prev) => ({ ...prev, isOpen: true, loading: false, error: e.message || 'Errore caricamento risultati', questions: [] }));
     }
   };
 
   const handleCloseResults = () => {
-    setResultsModal({ isOpen: false, loading: false, error: null, questions: [] });
+    setResultsModal({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {} });
   };
 
   if (loading) {
@@ -226,6 +246,7 @@ const IssuedQuizInfosPage = () => {
         loading={resultsModal.loading}
         error={resultsModal.error}
         questions={resultsModal.questions}
+        selectionsByQuestion={resultsModal.selectionsByQuestion}
         onClose={handleCloseResults}
       />
     </div>
