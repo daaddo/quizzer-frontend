@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/auth';
 
@@ -11,6 +11,7 @@ const EmailVerification = () => {
   const [status, setStatus] = useState('loading'); // loading, success, error
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
+  const didVerifyRef = useRef(false);
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -50,6 +51,9 @@ const EmailVerification = () => {
       }
     };
 
+    // Evita esecuzioni multiple (es. StrictMode o re-render)
+    if (didVerifyRef.current) return;
+    didVerifyRef.current = true;
     verifyEmail();
   }, [searchParams]);
 
