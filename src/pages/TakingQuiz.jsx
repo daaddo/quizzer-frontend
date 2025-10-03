@@ -85,6 +85,45 @@ const TakingQuiz = () => {
         return { questionsArr, metaInfo };
       };
 
+      // Revalida con il server: se nuove domande sono disponibili, azzera cache locale e ricarica stato
+      const revalidateFromServer = async () => {
+        try {
+          const data = await userApi.getRandomQuestionsByToken(token);
+          const { questionsArr, metaInfo } = normalizePayload(data);
+          if (Array.isArray(questionsArr) && questionsArr.length > 0) {
+            // Pulisci tutto ciò che è in cache per questo token
+            try {
+              localStorage.removeItem(`takingquiz:test:${token}`);
+              localStorage.removeItem(`takingquiz:answers:${token}`);
+              localStorage.removeItem(`takingquiz:results:${token}`);
+            } catch {}
+
+            // Imposta nuovo stato e salva nuova cache
+            setResults(null);
+            setScore(null);
+            setAnswers({});
+            setCurrentIndex(0);
+            setQuestions(questionsArr);
+            setMeta(metaInfo);
+            if (metaInfo.duration) {
+              const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
+              const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+              setDurationSecs(secs);
+              setRemainingSecs(secs);
+            } else {
+              setDurationSecs(null);
+              setRemainingSecs(null);
+            }
+            try {
+              localStorage.setItem(`takingquiz:test:${token}`, JSON.stringify({ questions: questionsArr, meta: metaInfo }));
+            } catch {}
+          }
+        } catch (err) {
+          // 4xx o errori: mantieni la schermata attuale
+          // opzionale: console.warn('Revalidation failed or not allowed:', err);
+        }
+      };
+
       // 1) Prova a caricare il test dalla cache locale per evitare refetch al refresh
       try {
         const key = `takingquiz:test:${token}`;
@@ -102,6 +141,8 @@ const TakingQuiz = () => {
               setRemainingSecs(secs);
             }
             setLoading(false);
+            // Revalida in background per gestire il caso di tentativo eliminato lato server
+            void revalidateFromServer();
             return;
           }
         }
