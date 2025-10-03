@@ -159,6 +159,42 @@ body {
   background-position: center;
 }
 
+/* Auth pages centering */
+.auth-page {
+  min-height: calc(100vh - 140px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.auth-page > .container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Dark overlay covering full page when in auth screens */
+.auth-bg {
+  position: relative;
+}
+
+.auth-bg::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+.auth-card {
+  position: relative;
+  z-index: 1;
+}
+
 /* Welcome Page Styles */
 .welcome-container {
   text-align: center;
@@ -1559,6 +1595,7 @@ body {
 
 /* Auth background (login + register) */
 .auth-bg {
+  
   background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url('/src/assets/auth-bg.jpg');
   background-size: cover;
   background-position: center;

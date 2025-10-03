@@ -77,10 +77,9 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container auth-bg">
+    <div className="auth-page auth-bg">
       <div className="container">
-        <div className="login-wrapper">
-          <div className="login-card">
+        <div className="auth-card login-card">
             <div className="login-header">
               <h1 className="login-title">Accesso Quizzer</h1>
               <p className="login-subtitle">
