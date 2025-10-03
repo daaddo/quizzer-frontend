@@ -15,8 +15,11 @@ const ProtectedRoute = ({ children }) => {
     return null;
   }
 
-  // Se non autenticato, reindirizza al login salvando la destinazione originale
+  // Se non autenticato, reindirizza al login salvo che la rotta sia già login o register
   if (!isAuthenticated) {
+    if (location.pathname === '/login' || location.pathname === '/register') {
+      return children;
+    }
     return (
       <Navigate 
         to="/login" 

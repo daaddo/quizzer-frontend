@@ -117,8 +117,8 @@ const Register = () => {
   // Se registrazione completata con successo
   if (success) {
     return (
-      <div className="auth-page">
-        <div className="container">
+      <div className="auth-page" style={{ display: 'flex', alignItems: 'center', minHeight: 'calc(100vh - 140px)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="auth-card success-card">
             <div className="success-icon">✅</div>
             <h1>Registrazione Completata!</h1>
@@ -160,101 +160,95 @@ const Register = () => {
               </div>
             )}
 
-            {/* Username */}
-            <div className="form-group">
-              <label htmlFor="username" className="form-label">
-                Username *
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleInputChange}
-                className={`form-input ${errors.username ? 'error' : ''}`}
-                placeholder="Inserisci il tuo username"
-                disabled={loading}
-                maxLength={20}
-                autoComplete="username"
-              />
-              {errors.username && (
-                <div className="form-error">{errors.username}</div>
-              )}
-              <div className="form-hint">
-                {formData.username.length}/20 caratteri (minimo 3)
+            {/* Row 1: Username + Email */}
+            <div className="register-grid">
+              <div className="form-group">
+                <label htmlFor="username" className="form-label">Username *</label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.username ? 'error' : ''}`}
+                  placeholder="Inserisci il tuo username"
+                  disabled={loading}
+                  maxLength={20}
+                  autoComplete="username"
+                />
+                {errors.username && (
+                  <div className="form-error">{errors.username}</div>
+                )}
+                <div className="form-hint">
+                  {formData.username.length}/20 caratteri (minimo 3)
+                </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">Email *</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.email ? 'error' : ''}`}
+                  placeholder="inserisci@email.com"
+                  disabled={loading}
+                  autoComplete="email"
+                />
+                {errors.email && (
+                  <div className="form-error">{errors.email}</div>
+                )}
               </div>
             </div>
 
-            {/* Email */}
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                Email *
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`form-input ${errors.email ? 'error' : ''}`}
-                placeholder="inserisci@email.com"
-                disabled={loading}
-                autoComplete="email"
-              />
-              {errors.email && (
-                <div className="form-error">{errors.email}</div>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">
-                Password *
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className={`form-input ${errors.password ? 'error' : ''}`}
-                placeholder="Inserisci la password"
-                disabled={loading}
-                autoComplete="new-password"
-              />
-              {errors.password && (
-                <div className="form-error">{errors.password}</div>
-              )}
-              <div className="form-hint">
-                Minimo 8 caratteri con almeno 1 minuscola, 1 maiuscola e 1 numero
+            {/* Row 2: Password + Conferma Password */}
+            <div className="register-grid">
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">Password *</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.password ? 'error' : ''}`}
+                  placeholder="Inserisci la password"
+                  disabled={loading}
+                  autoComplete="new-password"
+                />
+                {errors.password && (
+                  <div className="form-error">{errors.password}</div>
+                )}
+              </div>
+              <div className="form-group">
+                <label htmlFor="confirmPassword" className="form-label">Conferma Password *</label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                  placeholder="Ripeti la password"
+                  disabled={loading}
+                  autoComplete="new-password"
+                />
+                {errors.confirmPassword && (
+                  <div className="form-error">{errors.confirmPassword}</div>
+                )}
               </div>
             </div>
 
-            {/* Conferma Password */}
-            <div className="form-group">
-              <label htmlFor="confirmPassword" className="form-label">
-                Conferma Password *
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                placeholder="Ripeti la password"
-                disabled={loading}
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && (
-                <div className="form-error">{errors.confirmPassword}</div>
-              )}
+            {/* Password policy hint wide */}
+            <div className="form-hint" style={{ marginTop: 0, marginBottom: '1rem' }}>
+              Minimo 8 caratteri con almeno 1 minuscola, 1 maiuscola e 1 numero
             </div>
 
             {/* Submit */}
             <button 
               type="submit" 
-              className="btn btn-primary btn-auth"
+              className="btn btn-primary btn-auth btn-auth-wide"
               disabled={loading}
             >
               {loading ? (

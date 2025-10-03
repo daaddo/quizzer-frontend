@@ -95,14 +95,13 @@ const Login = () => {
                 </div>
               )}
 
-              <div className="form-group">
-                <label htmlFor="username">Username o Email *</label>
+              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                 <input
                   type="text"
                   id="username"
                   value={formData.username}
                   onChange={(e) => handleInputChange('username', e.target.value)}
-                  placeholder="Inserisci username o email"
+                  placeholder="Username o email"
                   className="form-input"
                   disabled={isSubmitting}
                   autoComplete="username"
@@ -113,15 +112,14 @@ const Login = () => {
                 </small>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="password">Password *</label>
+              <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                 <div className="password-input-wrapper">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="Inserisci la tua password"
+                    placeholder="Password"
                     className="form-input"
                     disabled={isSubmitting}
                     autoComplete="current-password"
@@ -135,9 +133,9 @@ const Login = () => {
                   >
                     {showPassword ? (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M2 2l20 20" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                         <path d="M12 5C7 5 3.1 8.1 1.5 12c.6 1.4 1.6 2.8 2.8 3.9M20.7 16c1-1.1 1.8-2.3 2.3-4-1.6-3.9-5.6-7-11-7-1.2 0-2.4.2-3.5.5" stroke="currentColor" strokeWidth="2" fill="none"/>
-                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
                       </svg>
                     ) : (
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -149,10 +147,10 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="form-actions">
+              <div className="form-actions" style={{ marginTop: '0.25rem' }}>
                 <button 
                   type="submit" 
-                  className="btn btn-large login-btn"
+                  className="btn login-btn"
                   disabled={isSubmitting || !formData.username.trim() || !formData.password.trim()}
                 >
                   {isSubmitting ? 'Accesso in corso...' : 'Accedi'}
@@ -200,9 +198,6 @@ const Login = () => {
               <p>
                 Non hai ancora un account? <Link to="/register">Registrati qui</Link>
               </p>
-              <Link to="/" className="btn btn-secondary">
-                ← Torna alla Home
-              </Link>
             </div>
           </div>
         </div>

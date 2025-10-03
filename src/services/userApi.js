@@ -447,10 +447,12 @@ class UserApiService {
           title: questionData.title,
           question: questionData.question,
           quizId: questionData.quizId,
-          isMultipleChoice: Array.isArray(questionData.answers) ? questionData.answers.filter(a => a && a.correct === true).length > 1 : false,
-          answers: (questionData.answers || []).map(a => ({
-            answer: a.answer,
-            isCorrect: !!a.correct
+          isMultipleChoice: Array.isArray(questionData.answers)
+            ? questionData.answers.filter((a) => (a && (a.isCorrect === true || a.correct === true))).length > 1
+            : false,
+          answers: (questionData.answers || []).map((a) => ({
+            answer: a?.answer,
+            isCorrect: a?.isCorrect === true || a?.correct === true
           }))
         })
       });

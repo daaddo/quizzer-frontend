@@ -80,8 +80,8 @@ const EmailVerification = () => {
   // Stato di successo
   if (status === 'success') {
     return (
-      <div className="auth-page">
-        <div className="container">
+      <div className="auth-page" style={{ display: 'flex', alignItems: 'center', minHeight: 'calc(100vh - 140px)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="auth-card success-card">
             <div className="success-icon">✅</div>
             <h1>Email Verificata!</h1>
@@ -108,8 +108,8 @@ const EmailVerification = () => {
 
   // Stato di errore
   return (
-    <div className="auth-page">
-      <div className="container">
+    <div className="auth-page" style={{ display: 'flex', alignItems: 'center', minHeight: 'calc(100vh - 140px)' }}>
+      <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
         <div className="auth-card error-card">
           <div className="error-icon">❌</div>
           <h1>Verifica Fallita</h1>

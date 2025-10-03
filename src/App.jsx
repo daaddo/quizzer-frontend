@@ -12,6 +12,7 @@ import QuizDetails from './pages/QuizDetails'
 import TestExecution from './pages/TestExecution'
 import TestResults from './pages/TestResults'
 import OidcCallback from './pages/OidcCallback'
+import { Navigate } from 'react-router-dom'
 import TakingQuiz from './pages/TakingQuiz'
 import IssuedQuizzesPage from './pages/IssuedQuizzesPage'
 import IssuedQuizInfosPage from './pages/IssuedQuizInfosPage'
@@ -22,11 +23,11 @@ function App() {
       <AuthProvider>
         <Layout>
           <Routes>
-            <Route path="/" element={<Welcome />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify" element={<EmailVerification />} />
-            <Route path="/oauth2/callback" element={<OidcCallback />} />
+            <Route path="/verify" element={<Navigate to="/login" replace />} />
+            <Route path="/oauth2/callback" element={<Navigate to="/login" replace />} />
             <Route 
               path="/dashboard" 
               element={

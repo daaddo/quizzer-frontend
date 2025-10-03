@@ -90,10 +90,10 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
       title: title.trim(),
       question: questionText.trim(),
       quizId: quizId,
-      isMultipleChoice: validAnswers.filter(a => a.correct).length > 1,
+      isMultipleChoice: validAnswers.filter(a => a.correct === true).length > 1,
       answers: validAnswers.map(answer => ({
         answer: answer.answer.trim(),
-        isCorrect: !!answer.correct
+        isCorrect: answer.correct === true
       }))
     };
 

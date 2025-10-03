@@ -11,6 +11,9 @@ const Welcome = () => {
         <h1 className="welcome-title">
           {isAuthenticated ? `Bentornato, ${username}!` : 'Benvenuto su Quizzer!'}
         </h1>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <img src="/src/assets/logo.svg" alt="Quizzer" width="72" height="72" />
+        </div>
         <p className="welcome-subtitle">
           {isAuthenticated ? 
             'Benvenuto nella tua area personale' :

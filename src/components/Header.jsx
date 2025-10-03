@@ -1,9 +1,10 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 const Header = () => {
   const { isAuthenticated, username, logout, isLoading } = useAuth();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -17,7 +18,8 @@ const Header = () => {
     <header className="header">
       <div className="container">
         <nav className="nav">
-          <Link to="/" className="logo">
+          <Link to="/" className="logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src="/src/assets/logo.svg" alt="Quizzer" width="36" height="36" style={{ display: 'block' }} />
             Quizzer
           </Link>
           
@@ -48,9 +50,11 @@ const Header = () => {
                   </button>
                 </div>
               ) : (
-                <Link to="/login" className="btn btn-small btn-login">
-                  🔐 Accedi
-                </Link>
+                location.pathname === '/login' ? null : (
+                  <Link to="/login" className="btn btn-small btn-login">
+                    Accedi
+                  </Link>
+                )
               )}
             </div>
           </div>
