@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import EditIssuedModal from '../components/EditIssuedModal';
+import DeleteIssuedModal from '../components/DeleteIssuedModal';
 
 const IssuedQuizzesPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const IssuedQuizzesPage = () => {
   const [filter, setFilter] = useState('all'); // all | active | expired
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
+	const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null, loading: false });
 
   const now = useMemo(() => Date.now(), []);
 
@@ -115,17 +117,30 @@ const IssuedQuizzesPage = () => {
 
   // Pulsanti singoli rimossi in favore di un'unica azione Modifica
 
-  const handleDeleteIssued = async (tokenId) => {
-    try {
-      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
-      if (!ok) return;
-      await userApi.deleteIssuedQuiz(tokenId);
-      setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
-      alert('Issued eliminato');
-    } catch (e) {
-      alert(e.message || 'Errore eliminazione issued');
-    }
-  };
+	const openDeleteIssuedModal = (issuedItem) => {
+		if (!issuedItem) return;
+		setDeleteModal({ isOpen: true, item: issuedItem, loading: false });
+	};
+
+	const handleConfirmDeleteIssued = async () => {
+		const tokenId = deleteModal?.item?.tokenId;
+		if (!tokenId) return;
+		try {
+			setDeleteModal((prev) => ({ ...prev, loading: true }));
+			await userApi.deleteIssuedQuiz(tokenId);
+			setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
+			setDeleteModal({ isOpen: false, item: null, loading: false });
+			alert('Issued eliminato');
+		} catch (e) {
+			setDeleteModal((prev) => ({ ...prev, loading: false }));
+			alert(e.message || 'Errore eliminazione issued');
+		}
+	};
+
+	const handleCancelDeleteIssued = () => {
+		if (deleteModal.loading) return;
+		setDeleteModal({ isOpen: false, item: null, loading: false });
+	};
 
   if (loading) {
     return (
@@ -262,13 +277,13 @@ const IssuedQuizzesPage = () => {
                                 <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
                               </svg>
                             </button>
-                            <button
+							<button
                               className="quiz-action-btn secondary"
                               type="button"
                               disabled={!it?.tokenId}
                               title="Elimina"
                               aria-label="Elimina issued"
-                              onClick={() => it?.tokenId && handleDeleteIssued(it.tokenId)}
+								onClick={() => it && openDeleteIssuedModal(it)}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path d="M9 3h6a1 1 0 0 1 1 1v1h4v2H4V5h4V4a1 1 0 0 1 1-1z" fill="currentColor"/>
@@ -286,7 +301,7 @@ const IssuedQuizzesPage = () => {
           )}
         </div>
       </div>
-      <EditIssuedModal
+		<EditIssuedModal
         isOpen={editModal.isOpen}
         token={editModal.token}
         initialNumberOfQuestions={editModal.initialNumber}
@@ -296,6 +311,13 @@ const IssuedQuizzesPage = () => {
         onConfirm={handleConfirmEditIssued}
         onCancel={handleCancelEditIssued}
       />
+		<DeleteIssuedModal
+			isOpen={deleteModal.isOpen}
+			issued={deleteModal.item}
+			loading={deleteModal.loading}
+			onConfirm={handleConfirmDeleteIssued}
+			onCancel={handleCancelDeleteIssued}
+		/>
     </div>
   );
 };

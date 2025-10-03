@@ -190,7 +190,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 1);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 0;
 }
 
@@ -1600,10 +1600,11 @@ body {
 
 /* Auth background (login + register) */
 .auth-bg {
-  background-image: linear-gradient(rgba(15, 23, 42, 0.188), rgba(15, 23, 42, 0.55)), url('/src/assets/auth-bg.jpg');
+  background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url('/src/assets/background.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .login-wrapper {
