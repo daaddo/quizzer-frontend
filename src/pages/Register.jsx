@@ -149,8 +149,9 @@ const Register = () => {
       <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div className="auth-card">
           <div className="auth-header" style={{ textAlign: 'center' }}>
+            <img src="/src/assets/logo.png" alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
             <h1 className="login-title" style={{ marginBottom: '0.5rem' }}>Registrazione</h1>
-            <p className="login-subtitle">Crea il tuo account per iniziare</p>
+            <p className="login-subtitle" style={{ marginBottom: '1.25rem' }}>Crea il tuo account per iniziare</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -161,7 +162,7 @@ const Register = () => {
             )}
 
             {/* Row 1: Username (full width) + Email (full width) */}
-            <div className="register-grid" style={{ rowGap: '0.75rem' }}>
+            <div className="register-grid" style={{ rowGap: '1.25rem' }}>
               <div className="form-group col-span-2" style={{ marginBottom: 0 }}>
                 <input
                   id="username"
