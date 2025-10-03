@@ -2119,6 +2119,30 @@ body {
   overflow-y: auto;
   animation: modalFadeIn 0.3s ease-out;
 }
+.attempt-results-modal {
+  max-width: 900px; /* allarga il form dei dettagli */
+  overflow: hidden; /* la scrollbar resta interna al body del modal */
+}
+
+.attempt-results-modal .modal-body {
+  max-height: calc(90vh - 120px);
+  overflow: auto; /* scrollbar interna al form */
+}
+
+/* Scrollbar sottile */
+.attempt-results-modal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.attempt-results-modal .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.attempt-results-modal .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+.attempt-results-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.35);
+}
 
 /* Stili specifici per modal CREA NUOVA DOMANDA con scroll interno */
 .create-question-modal {

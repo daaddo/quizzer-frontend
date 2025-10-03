@@ -33,7 +33,7 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content attempt-results-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Risultati tentativo</h2>
           <button onClick={onClose} className="modal-close-btn" disabled={loading} title="Chiudi">✕</button>
