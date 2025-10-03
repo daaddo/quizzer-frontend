@@ -145,7 +145,7 @@ const Register = () => {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-page auth-bg">
       <div className="container">
         <div className="auth-card">
           <div className="auth-header">
@@ -160,10 +160,9 @@ const Register = () => {
               </div>
             )}
 
-            {/* Row 1: Username + Email */}
-            <div className="register-grid">
-              <div className="form-group">
-                <label htmlFor="username" className="form-label">Username *</label>
+            {/* Row 1: Username (full width) + Email (full width) */}
+            <div className="register-grid" style={{ rowGap: '0.5rem' }}>
+              <div className="form-group col-span-2" style={{ marginBottom: 0 }}>
                 <input
                   id="username"
                   name="username"
@@ -171,7 +170,7 @@ const Register = () => {
                   value={formData.username}
                   onChange={handleInputChange}
                   className={`form-input ${errors.username ? 'error' : ''}`}
-                  placeholder="Inserisci il tuo username"
+                  placeholder="Username"
                   disabled={loading}
                   maxLength={20}
                   autoComplete="username"
@@ -179,12 +178,8 @@ const Register = () => {
                 {errors.username && (
                   <div className="form-error">{errors.username}</div>
                 )}
-                <div className="form-hint">
-                  {formData.username.length}/20 caratteri (minimo 3)
-                </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">Email *</label>
+              <div className="form-group col-span-2" style={{ marginBottom: '0.5rem' }}>
                 <input
                   id="email"
                   name="email"
@@ -192,7 +187,7 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`form-input ${errors.email ? 'error' : ''}`}
-                  placeholder="inserisci@email.com"
+                  placeholder="Email"
                   disabled={loading}
                   autoComplete="email"
                 />

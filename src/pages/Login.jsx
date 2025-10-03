@@ -77,7 +77,7 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container auth-bg">
       <div className="container">
         <div className="login-wrapper">
           <div className="login-card">
@@ -107,9 +107,6 @@ const Login = () => {
                   autoComplete="username"
                   autoFocus
                 />
-                <small className="input-help">
-                  Puoi usare sia il tuo username che l'indirizzo email
-                </small>
               </div>
 
               <div className="form-group" style={{ marginBottom: '0.75rem' }}>
@@ -157,20 +154,12 @@ const Login = () => {
                 </button>
               </div>
 
-              <div className="login-info">
-                <div className="remember-me-info">
-                  <small>
-                    Il sistema ricorderà automaticamente le tue credenziali per accessi futuri
-                  </small>
-                </div>
-              </div>
+              
             </form>
 
-            <div className="oauth-divider">
-              <span>Oppure</span>
-            </div>
+            
 
-            <div className="oauth-buttons">
+            <div className="oauth-buttons" style={{ marginTop: 0 }}>
               <a
                 href="http://localhost:8080/oauth2/authorization/google"
                 className="btn-google"

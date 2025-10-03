@@ -61,6 +61,34 @@ body {
   color: white;
 }
 
+/* Logo badge - white circular background */
+.logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px; /* 36px x 2 + padding */
+  height: 70px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logo-badge img {
+  display: block;
+  width: 96px; /* 36px x 2 */
+  height: 96px;
+}
+
+.logo-badge.large {
+  width: 168px; /* 72 x 2 + padding */
+  height: 168px;
+}
+
+.logo-badge.large img {
+  width: 144px; /* 72 x 2 */
+  height: 144px;
+}
+
 .nav-links {
   display: flex;
   list-style: none;
@@ -121,7 +149,14 @@ body {
 /* Main Content */
 .main-content {
   min-height: calc(100vh - 140px);
-  padding: 2rem 0;
+}
+
+/* Global background */
+body {
+  background-image: url('/src/assets/background.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
 }
 
 /* Welcome Page Styles */
@@ -1523,6 +1558,14 @@ body {
   padding: 2rem 0;
 }
 
+/* Auth background (login + register) */
+.auth-bg {
+  background-image: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.55)), url('/src/assets/auth-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .login-wrapper {
   width: 100%;
   display: flex;
@@ -1533,7 +1576,7 @@ body {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  padding: 3rem;
+  padding: 1.5rem;
   width: 100%;
   max-width: 450px;
 }
@@ -1558,6 +1601,10 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem 1rem;
+}
+
+.col-span-2 {
+  grid-column: 1 / -1;
 }
 
 .btn-auth-wide {

@@ -19,7 +19,9 @@ const Header = () => {
       <div className="container">
         <nav className="nav">
           <Link to="/" className="logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-            <img src="/src/assets/logo.svg" alt="Quizzer" width="36" height="36" style={{ display: 'block' }} />
+            <span className="logo-badge">
+              <img src="/src/assets/logo.png" alt="Quizzer" />
+            </span>
             Quizzer
           </Link>
           

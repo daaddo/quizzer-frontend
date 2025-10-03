@@ -12,7 +12,9 @@ const Welcome = () => {
           {isAuthenticated ? `Bentornato, ${username}!` : 'Benvenuto su Quizzer!'}
         </h1>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-          <img src="/src/assets/logo.svg" alt="Quizzer" width="72" height="72" />
+          <span className="logo-badge large">
+            <img src="/src/assets/logo.png" alt="Quizzer" />
+          </span>
         </div>
         <p className="welcome-subtitle">
           {isAuthenticated ? 
