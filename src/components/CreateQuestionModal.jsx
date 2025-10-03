@@ -103,7 +103,8 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
   // Handler per aggiungere risposta
   const handleAddAnswer = () => {
     if (answers.length < 10) {
-      setAnswers([...answers, { answer: '', correct: false }]);
+      // Inserisci la nuova risposta in alto
+      setAnswers([{ answer: '', correct: false }, ...answers]);
     }
   };
 
@@ -152,6 +153,22 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
         </div>
 
         <div className="modal-body">
+          {/* Pannello informativo ed errori */}
+          <div className="question-info-panel">
+            <ul>
+              <li>Massimo 10 risposte per domanda</li>
+              <li>Imposta almeno una risposta corretta</li>
+              <li>Seleziona più risposte corrette per domande multiple</li>
+            </ul>
+          </div>
+          {(errors.title || errors.questionText || errors.answers || errors.correctAnswer) && (
+            <div className="form-error" style={{ marginBottom: '1rem' }}>
+              {errors.title && <div>{errors.title}</div>}
+              {errors.questionText && <div>{errors.questionText}</div>}
+              {errors.answers && <div>{errors.answers}</div>}
+              {errors.correctAnswer && <div>{errors.correctAnswer}</div>}
+            </div>
+          )}
           <form onSubmit={(e) => e.preventDefault()}>
             {/* Campo Titolo */}
             <div className="form-group">
@@ -203,7 +220,12 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
                   className="btn btn-small btn-secondary"
                   disabled={loading || answers.length >= 10}
                 >
-                  Aggiungi Risposta
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    Aggiungi Risposta
+                  </span>
                 </button>
               </div>
               

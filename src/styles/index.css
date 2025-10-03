@@ -69,8 +69,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 70px; /* 36px x 2 + padding */
-  height: 70px;
+  width: 50px; /* 36px x 2 + padding */
+  height: 50px;
   background: #ffffff;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -881,7 +881,7 @@ body {
 /* Quiz Sidebar */
 .quiz-sidebar {
   position: sticky;
-  top: 20px;
+  top: 84px; /* distanza dal nuovo header più alto */
 }
 
 .quiz-info-card {
