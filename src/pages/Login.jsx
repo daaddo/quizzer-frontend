@@ -144,7 +144,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="form-actions" style={{ marginTop: '0.25rem' }}>
+              <div className="form-actions" style={{ marginTop: '0.125rem' }}>
                 <button 
                   type="submit" 
                   className="btn login-btn"
@@ -158,6 +158,9 @@ const Login = () => {
             </form>
 
             
+            <div className="oauth-divider">
+              <span>Oppure con</span>
+            </div>
 
             <div className="oauth-buttons" style={{ marginTop: 0 }}>
               <a
