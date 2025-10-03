@@ -82,7 +82,7 @@ const Login = () => {
         <div className="login-wrapper">
           <div className="login-card">
             <div className="login-header">
-              <h1 className="login-title">🔐 Accesso Quizzer</h1>
+              <h1 className="login-title">Accesso Quizzer</h1>
               <p className="login-subtitle">
                 Accedi al tuo account per entrare nella tua area personale
               </p>
@@ -91,7 +91,6 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="login-form">
               {error && (
                 <div className="form-error">
-                  <span className="error-icon">⚠️</span>
                   {error}
                 </div>
               )}
@@ -134,7 +133,18 @@ const Login = () => {
                     disabled={isSubmitting}
                     aria-label={showPassword ? 'Nascondi password' : 'Mostra password'}
                   >
-                    {showPassword ? '🙈' : '👁️'}
+                    {showPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M2 2l20 20" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M12 5C7 5 3.1 8.1 1.5 12c.6 1.4 1.6 2.8 2.8 3.9M20.7 16c1-1.1 1.8-2.3 2.3-4-1.6-3.9-5.6-7-11-7-1.2 0-2.4.2-3.5.5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 5C6.5 5 2 9 1 12c1 3 5.5 7 11 7s10-4 11-7c-1-3-5.5-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -145,13 +155,12 @@ const Login = () => {
                   className="btn btn-large login-btn"
                   disabled={isSubmitting || !formData.username.trim() || !formData.password.trim()}
                 >
-                  {isSubmitting ? '⏳ Accesso in corso...' : '🚀 Accedi'}
+                  {isSubmitting ? 'Accesso in corso...' : 'Accedi'}
                 </button>
               </div>
 
               <div className="login-info">
                 <div className="remember-me-info">
-                  <span className="info-icon">💾</span>
                   <small>
                     Il sistema ricorderà automaticamente le tue credenziali per accessi futuri
                   </small>
@@ -184,9 +193,7 @@ const Login = () => {
                 </span>
                 <span className="btn-google-text">Accedi con Google</span>
               </a>
-              <div className="login-hint">
-                <small>Accedi con il tuo account Google</small>
-              </div>
+              
             </div>
 
             <div className="login-footer">

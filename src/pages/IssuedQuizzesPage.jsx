@@ -115,6 +115,18 @@ const IssuedQuizzesPage = () => {
 
   // Pulsanti singoli rimossi in favore di un'unica azione Modifica
 
+  const handleDeleteIssued = async (tokenId) => {
+    try {
+      const ok = window.confirm('Confermi l\'eliminazione di questo issued? Azione irreversibile.');
+      if (!ok) return;
+      await userApi.deleteIssuedQuiz(tokenId);
+      setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
+      alert('Issued eliminato');
+    } catch (e) {
+      alert(e.message || 'Errore eliminazione issued');
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -161,10 +173,34 @@ const IssuedQuizzesPage = () => {
           <div className="quiz-section-header">
             <h2 className="quiz-section-title">{quiz?.title || `Quiz #${quizId}`}</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div className="view-toggle" role="tablist" aria-label="Filtro">
-                <button className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')}>Tutti</button>
-                <button className={`btn ${filter === 'active' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('active')}>In corso</button>
-                <button className={`btn ${filter === 'expired' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('expired')}>Scaduti</button>
+              <div role="radiogroup" aria-label="Filtro" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <label className="filter-option" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="issued-filter"
+                    checked={filter === 'all'}
+                    onChange={() => setFilter('all')}
+                  />
+                  <span>Tutti</span>
+                </label>
+                <label className="filter-option" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="issued-filter"
+                    checked={filter === 'active'}
+                    onChange={() => setFilter('active')}
+                  />
+                  <span>In corso</span>
+                </label>
+                <label className="filter-option" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="issued-filter"
+                    checked={filter === 'expired'}
+                    onChange={() => setFilter('expired')}
+                  />
+                  <span>Scaduti</span>
+                </label>
               </div>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
             </div>
@@ -207,11 +243,6 @@ const IssuedQuizzesPage = () => {
                         <td>{formatDuration(it?.duration)}</td>
                         <td>
                           <div className="table-actions">
-                            {isExpired ? (
-                              <button className="quiz-action-btn primary" type="button" disabled aria-disabled="true">Apri</button>
-                            ) : (
-                              <button className="quiz-action-btn primary" type="button" onClick={() => navigate(`/takingquiz?token=${encodeURIComponent(it?.tokenId || '')}`)}>Apri</button>
-                            )}
                             <button
                               className="quiz-action-btn secondary"
                               type="button"
@@ -229,6 +260,19 @@ const IssuedQuizzesPage = () => {
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
                                 <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
+                              </svg>
+                            </button>
+                            <button
+                              className="quiz-action-btn secondary"
+                              type="button"
+                              disabled={!it?.tokenId}
+                              title="Elimina"
+                              aria-label="Elimina issued"
+                              onClick={() => it?.tokenId && handleDeleteIssued(it.tokenId)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M9 3h6a1 1 0 0 1 1 1v1h4v2H4V5h4V4a1 1 0 0 1 1-1z" fill="currentColor"/>
+                                <path d="M6 8h12l-1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8z" fill="currentColor"/>
                               </svg>
                             </button>
                           </div>

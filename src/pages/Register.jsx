@@ -101,9 +101,10 @@ const Register = () => {
       console.error('Registration error:', error);
       
       // Gestisci errori specifici del server
-      if (error.message.includes('username')) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('username already in use') || msg.includes('username')) {
         setErrors({ username: 'Username già in uso' });
-      } else if (error.message.includes('email')) {
+      } else if (msg.includes('email already in use') || msg.includes('email')) {
         setErrors({ email: 'Email già registrata' });
       } else {
         setErrors({ general: error.message || 'Errore durante la registrazione' });

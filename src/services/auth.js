@@ -303,7 +303,12 @@ class AuthService {
           throw new Error(errorData || 'Dati non validi');
         }
         if (response.status === 409) {
-          throw new Error('Username o email già esistenti');
+          let conflictMsg = '';
+          try {
+            conflictMsg = await response.text();
+          } catch {}
+          // Passa il messaggio specifico dal backend se presente (es. "Username already in use" / "email already in use")
+          throw new Error(conflictMsg || 'Username o email già esistenti');
         }
         throw new Error(`Errore registrazione: ${response.status}`);
       }

@@ -31,7 +31,7 @@ const Welcome = () => {
           ) : (
             <>
               <Link to="/login" className="btn btn-large cta-button">
-                🔐 Accedi per Iniziare
+                Accedi per Iniziare
               </Link>
               <div className="login-hint">
                 <small>Effettua l'accesso per accedere alle tue funzionalità personali</small>
@@ -39,7 +39,11 @@ const Welcome = () => {
             </>
           )}
         </div>
-
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.25rem' }}>
+          <Link to="/dashboard" className="btn btn-primary btn-large">
+            Vai alla Dashboard
+          </Link>
+        </div>
 
       </div>
     </div>

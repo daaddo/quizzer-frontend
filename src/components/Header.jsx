@@ -37,14 +37,14 @@ const Header = () => {
               ) : isAuthenticated ? (
                 <div className="user-menu">
                   <span className="user-greeting">
-                    👋 Ciao, <strong>{username}</strong>
+                    Ciao, <strong>{username}</strong>
                   </span>
                   <button 
                     onClick={handleLogout} 
                     className="btn btn-small btn-logout"
                     title="Esci dall'account"
                   >
-                    🚪 Logout
+                    Logout
                   </button>
                 </div>
               ) : (
