@@ -138,8 +138,6 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
 
           {result && (
             <div className="quiz-details-center" style={{ marginTop: '1rem' }}>
-              <strong>Token generato</strong>
-              <div style={{ wordBreak: 'break-all', marginBottom: '0.5rem' }}>{result.token}</div>
               <strong>Link</strong>
               <div style={{ wordBreak: 'break-all', marginBottom: '0.75rem' }}>{result.link}</div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>

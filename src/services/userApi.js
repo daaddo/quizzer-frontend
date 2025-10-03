@@ -444,10 +444,14 @@ class UserApiService {
         headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({
-          title: questionData.title || null,
+          title: questionData.title,
           question: questionData.question,
           quizId: questionData.quizId,
-          answers: questionData.answers
+          isMultipleChoice: Array.isArray(questionData.answers) ? questionData.answers.filter(a => a && a.correct === true).length > 1 : false,
+          answers: (questionData.answers || []).map(a => ({
+            answer: a.answer,
+            isCorrect: !!a.correct
+          }))
         })
       });
 

@@ -464,7 +464,9 @@
 }
 
 .quiz-actions-primary {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
   width: 100%;
 }
 
@@ -482,8 +484,8 @@
 }
 
 .quiz-actions-primary .quiz-action-btn {
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -543,6 +545,15 @@
   .quiz-actions .quiz-action-btn {
     padding: 1rem 1.5rem;
     font-size: 1rem;
+  }
+  
+  /* Stack primary actions vertically on mobile */
+  .quiz-actions-primary {
+    grid-template-columns: 1fr;
+  }
+  .quiz-actions-primary .quiz-action-btn {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.95rem;
   }
   
   .quiz-actions-primary .quiz-action-btn {

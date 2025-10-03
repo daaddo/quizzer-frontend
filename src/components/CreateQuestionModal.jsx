@@ -48,16 +48,18 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
   const validateForm = () => {
     const newErrors = {};
     
+    // Validazione titolo (richiesto)
+    if (!title.trim()) {
+      newErrors.title = 'Il titolo è obbligatorio';
+    } else if (title.trim().length < 3) {
+      newErrors.title = 'Il titolo deve avere almeno 3 caratteri';
+    }
+
     // Validazione domanda
     if (!questionText.trim()) {
       newErrors.questionText = 'Il testo della domanda è obbligatorio';
     } else if (questionText.trim().length < 5) {
       newErrors.questionText = 'Il testo della domanda deve avere almeno 5 caratteri';
-    }
-
-    // Validazione titolo opzionale
-    if (title && title.trim().length > 0 && title.trim().length < 3) {
-      newErrors.title = 'Il titolo deve avere almeno 3 caratteri o essere vuoto';
     }
 
     // Validazione risposte
@@ -85,12 +87,13 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
     const validAnswers = answers.filter(answer => answer.answer.trim());
     
     const newQuestion = {
-      title: title.trim() || null,
+      title: title.trim(),
       question: questionText.trim(),
       quizId: quizId,
+      isMultipleChoice: validAnswers.filter(a => a.correct).length > 1,
       answers: validAnswers.map(answer => ({
         answer: answer.answer.trim(),
-        correct: answer.correct
+        isCorrect: !!answer.correct
       }))
     };
 
