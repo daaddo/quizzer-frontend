@@ -17,6 +17,7 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
   const [numQuestions, setNumQuestions] = useState('');
   const [expiration, setExpiration] = useState(''); // datetime-local (YYYY-MM-DDTHH:mm)
   const [error, setError] = useState(null);
+  const [copyOk, setCopyOk] = useState(false);
 
   // Blocca scrolling quando aperto
   useEffect(() => {
@@ -84,6 +85,32 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
     onConfirm && onConfirm(payload);
   };
 
+  const handleCopyLink = async () => {
+    if (!token) return;
+    const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+    const link = `${origin}/takingquiz?token=${encodeURIComponent(token)}`;
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        // Fallback per browser senza Clipboard API
+        const ta = document.createElement('textarea');
+        ta.value = link;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopyOk(true);
+      setTimeout(() => setCopyOk(false), 2000);
+    } catch (e) {
+      // In caso di errore non interrompere il flusso del modal
+    }
+  };
+
   if (!isOpen) return null;
 
   const disabled = loading;
@@ -137,6 +164,16 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
         </div>
 
         <div className="modal-footer">
+          {token && (
+            <button
+              onClick={handleCopyLink}
+              className="btn btn-secondary"
+              disabled={loading}
+              title="Copia link"
+            >
+              {copyOk ? 'Copiato' : 'Copia link'}
+            </button>
+          )}
           <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>Annulla</button>
           <button onClick={handleConfirm} className="btn btn-primary" disabled={disabled}>Salva</button>
         </div>

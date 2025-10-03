@@ -229,7 +229,7 @@
 }
 
 .fullpage-question {
-  scroll-margin-top: 120px;
+  scroll-margin-top: 140px; /* evita che il contenuto finisca sotto l'header */
 }
 
 .fullpage-navigation {
@@ -278,7 +278,7 @@
 /* Header fisso (sticky) solo in modalità A cascata */
 .takingquiz-theme.fullpage-mode .test-header {
   position: sticky;
-  top: 0;
+  top: 84px; /* offset rispetto all'header principale più alto */
   z-index: 40;
   background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
   margin-bottom: 1rem;

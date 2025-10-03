@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import '../styles/test.css';
+import ConfirmSubmitModal from '../components/ConfirmSubmitModal';
 
 // Guard a livello di modulo per evitare doppie fetch in StrictMode (monta->smonta->monta)
 const inflightTokens = new Set();
@@ -22,6 +23,7 @@ const TakingQuiz = () => {
   const [meta, setMeta] = useState({ numberOfQuestions: null, expirationDate: null, duration: null });
   const [durationSecs, setDurationSecs] = useState(null);
   const [remainingSecs, setRemainingSecs] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, loading: false });
 
   // Vista: 'scrolling' (una domanda alla volta) oppure 'cascata' (tutte)
   const [viewMode, setViewMode] = useState(() => {
@@ -304,7 +306,26 @@ const TakingQuiz = () => {
       alert(err.message || 'Errore durante l\'invio delle risposte');
     } finally {
       setSubmitting(false);
+      setConfirmModal({ isOpen: false, loading: false });
     }
+  };
+
+  const openConfirmSubmit = () => {
+    if (!questions.length) return;
+    const total = questions.length;
+    const answered = Object.keys(answers).length;
+    const unanswered = Math.max(0, total - answered);
+    setConfirmModal({ isOpen: true, loading: false, total, unanswered });
+  };
+
+  const handleConfirmSubmit = async () => {
+    setConfirmModal((prev) => ({ ...prev, loading: true }));
+    await handleSubmit();
+  };
+
+  const handleCancelSubmit = () => {
+    if (confirmModal.loading) return;
+    setConfirmModal({ isOpen: false, loading: false });
   };
 
   if (loading) {
@@ -438,7 +459,7 @@ const TakingQuiz = () => {
                   <button className="btn btn-primary" onClick={() => setCurrentIndex(Math.min(total - 1, currentIndex + 1))}>Successiva</button>
                 ) : (
                   !results && (
-                    <button className="btn btn-success" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
+                    <button className="btn btn-success" onClick={openConfirmSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
                   )
                 )}
               </div>
@@ -451,12 +472,20 @@ const TakingQuiz = () => {
             <div className="fullpage-navigation">
               <div className="answered-count">Risposte date: {Object.keys(answers).length} / {total}</div>
               {!results && (
-                <button className="btn btn-success btn-large" onClick={handleSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
+                <button className="btn btn-success btn-large" onClick={openConfirmSubmit} disabled={submitting}>{submitting ? 'Invio...' : 'Completa Test'}</button>
               )}
             </div>
           </div>
         )}
       </div>
+      <ConfirmSubmitModal
+        isOpen={!!confirmModal.isOpen}
+        loading={!!confirmModal.loading}
+        unansweredCount={Math.max(0, (confirmModal.unanswered || (questions.length - Object.keys(answers).length)) || 0)}
+        totalCount={confirmModal.total || questions.length}
+        onConfirm={handleConfirmSubmit}
+        onCancel={handleCancelSubmit}
+      />
     </div>
   );
 };
