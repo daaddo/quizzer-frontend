@@ -26,8 +26,8 @@ function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/verify" element={<Navigate to="/login" replace />} />
-            <Route path="/oauth2/callback" element={<Navigate to="/login" replace />} />
+            <Route path="/verify" element={<EmailVerification/>} />
+            <Route path="/oauth2/callback" element={<OidcCallback />} />
             <Route 
               path="/dashboard" 
               element={
