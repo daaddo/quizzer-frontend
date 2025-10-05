@@ -10,6 +10,7 @@ import DeleteQuizModal from '../components/DeleteQuizModal';
 import TestConfigModal from '../components/TestConfigModal';
 import GenerateLinkModal from '../components/GenerateLinkModal';
 import IssuedQuizzesModal from '../components/IssuedQuizzesModal';
+import StartTakingQuizModal from '../components/StartTakingQuizModal';
 import '../components/dashboard.css';
 
 /**
@@ -30,6 +31,7 @@ const Dashboard = () => {
   const [generateLinkModal, setGenerateLinkModal] = useState({ isOpen: false, quiz: null, result: null });
   const [modalLoading, setModalLoading] = useState(false);
   const [issuedModal, setIssuedModal] = useState({ isOpen: false, quiz: null, items: [], loading: false, error: null });
+  const [startTakingModal, setStartTakingModal] = useState({ isOpen: false, token: null });
 
   // Carica i dati completi dell'utente
   useEffect(() => {
@@ -47,6 +49,15 @@ const Dashboard = () => {
         const userData = await userApi.getUserInformation();
         console.log('Dashboard received user data:', userData);
         setUserInfo(userData);
+        // Se presente, recupera ed elimina l'eventuale token takingquiz salvato pre-login
+        try {
+          const pendingToken = localStorage.getItem('pendingTakingQuizToken');
+          if (pendingToken) {
+            console.log('[Dashboard] Token takingquiz recuperato post-login:', pendingToken, '(mostra conferma)');
+            localStorage.removeItem('pendingTakingQuizToken');
+            setStartTakingModal({ isOpen: true, token: pendingToken });
+          }
+        } catch {}
         
       } catch (err) {
         console.error('Dashboard error:', err);
@@ -361,6 +372,26 @@ const Dashboard = () => {
         onCancel={handleCancelGenerateLink}
         loading={modalLoading}
         result={generateLinkModal.result}
+      />
+
+      {/* Conferma avvio quiz da link */}
+      <StartTakingQuizModal
+        isOpen={startTakingModal.isOpen}
+        token={startTakingModal.token}
+        onConfirm={() => {
+          if (!startTakingModal.token) {
+            setStartTakingModal({ isOpen: false, token: null });
+            return;
+          }
+          const t = startTakingModal.token;
+          setStartTakingModal({ isOpen: false, token: null });
+          console.log('[Dashboard] Conferma avvio quiz, redirect a /takingquiz');
+          navigate(`/takingquiz?token=${encodeURIComponent(t)}`, { replace: true });
+        }}
+        onCancel={() => {
+          console.log('[Dashboard] Avvio quiz annullato dall\'utente');
+          setStartTakingModal({ isOpen: false, token: null });
+        }}
       />
 
       {/* Modale rimosso in favore della pagina dedicata */}

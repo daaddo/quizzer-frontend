@@ -99,6 +99,7 @@ const TakingQuiz = () => {
               localStorage.removeItem(`takingquiz:answers:${token}`);
               localStorage.removeItem(`takingquiz:results:${token}`);
             } catch {}
+            console.log('[TakingQuiz] Cache locale invalidata per token', token);
 
             // Imposta nuovo stato e salva nuova cache
             setResults(null);
@@ -119,6 +120,7 @@ const TakingQuiz = () => {
             try {
               localStorage.setItem(`takingquiz:test:${token}`, JSON.stringify({ questions: questionsArr, meta: metaInfo }));
             } catch {}
+            console.log('[TakingQuiz] Test salvato in cache per token', token, '-', questionsArr.length, 'domande', metaInfo);
           }
         } catch (err) {
           // 4xx o errori: mantieni la schermata attuale
@@ -142,6 +144,7 @@ const TakingQuiz = () => {
               setDurationSecs(secs);
               setRemainingSecs(secs);
             }
+            console.log('[TakingQuiz] Test caricato da cache per token', token, '-', questionsArr.length, 'domande', metaInfo);
             setLoading(false);
             // Revalida in background per gestire il caso di tentativo eliminato lato server
             void revalidateFromServer();
@@ -196,6 +199,7 @@ const TakingQuiz = () => {
         try {
           localStorage.setItem(key, JSON.stringify({ questions: questionsArr, meta: metaInfo }));
         } catch {}
+        console.log('[TakingQuiz] Test salvato in cache per token', token, '-', questionsArr.length, 'domande', metaInfo);
       } catch (err) {
         setError(err.message || 'Errore nel caricamento delle domande');
       } finally {
@@ -233,6 +237,7 @@ const TakingQuiz = () => {
       if (a) {
         const parsed = JSON.parse(a);
         if (parsed && typeof parsed === 'object') setAnswers(parsed);
+        if (parsed && typeof parsed === 'object') console.log(`[TakingQuiz] Risposte caricate da cache per token ${token}: ${Object.keys(parsed).length} domande risposte`);
       }
     } catch {}
     try {
@@ -250,6 +255,7 @@ const TakingQuiz = () => {
             if (sel.size === cor.size && [...sel].every(v => cor.has(v))) correct++;
           }
           setScore(`${correct}/${entries.length}`);
+          console.log(`[TakingQuiz] Risultati caricati da cache per token ${token}: ${entries.length} domande valutate, punteggio: ${correct}/${entries.length}`);
         }
       }
     } catch {}
@@ -258,6 +264,7 @@ const TakingQuiz = () => {
   const persistAnswers = (next) => {
     setAnswers(next);
     try { localStorage.setItem(`takingquiz:answers:${token}`, JSON.stringify(next)); } catch {}
+    try { console.log(`[TakingQuiz] Risposte salvate in cache per token ${token}: ${Object.keys(next).length} domande risposte`); } catch {}
   };
 
   const handleToggle = (questionId, answerId, multipleChoice) => {
@@ -302,6 +309,7 @@ const TakingQuiz = () => {
         if (sel.size === cor.size && [...sel].every(v => cor.has(v))) correct++;
       }
       setScore(`${correct}/${entries.length}`);
+      console.log(`[TakingQuiz] Risultati salvati in cache per token ${token}: ${entries.length} domande valutate, punteggio: ${correct}/${entries.length}`);
     } catch (err) {
       alert(err.message || 'Errore durante l\'invio delle risposte');
     } finally {

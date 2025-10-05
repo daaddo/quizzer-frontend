@@ -20,10 +20,22 @@ const ProtectedRoute = ({ children }) => {
     if (location.pathname === '/login' || location.pathname === '/register') {
       return children;
     }
+    const fullUri = `${location.pathname}${location.search}${location.hash}`;
+    console.log('[ProtectedRoute] Redirect a /login. URI richiesto:', fullUri);
+    localStorage.setItem('postLoginRedirect', fullUri);
+    try {
+      if (location.pathname === '/takingquiz' && location.search) {
+        const token = new URLSearchParams(location.search).get('token');
+        if (token) {
+          localStorage.setItem('pendingTakingQuizToken', token);
+          console.log('[ProtectedRoute] Token takingquiz salvato per post-login:', token);
+        }
+      }
+    } catch {}
     return (
       <Navigate 
         to="/login" 
-        state={{ from: location.pathname }}
+        state={{ from: fullUri }}
         replace 
       />
     );
