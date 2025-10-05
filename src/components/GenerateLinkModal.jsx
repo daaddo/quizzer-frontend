@@ -71,7 +71,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
   const disabled = loading || !quiz?.questionCount || quiz.questionCount < 1;
 
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay generate-link-modal" onClick={onCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Genera link per quiz</h2>

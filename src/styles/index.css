@@ -872,7 +872,7 @@ body {
 /* Layout con Sidebar */
 .quiz-content-layout {
   display: grid;
-  grid-template-columns: 450px 1fr; /* allargato di 150px l'infobox sinistro */
+  grid-template-columns: 350px 1fr; /* allargato di 150px l'infobox sinistro */
   gap: 2rem;
   margin-bottom: 2rem;
   align-items: start;
@@ -2483,6 +2483,44 @@ body {
 
 .modal-content {
   max-height: 95vh;
+}
+
+/* Scroll interno e scrollbar sottile per GenerateLinkModal */
+.generate-link-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+}
+.generate-link-modal .modal-header {
+  flex-shrink: 0;
+}
+.generate-link-modal .modal-body {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(95vh - 140px);
+}
+.generate-link-modal .modal-footer {
+  flex-shrink: 0;
+}
+
+/* Scrollbar molto sottile */
+.generate-link-modal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.generate-link-modal .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.generate-link-modal .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+.generate-link-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.35);
+}
+
+/* Firefox */
+.generate-link-modal .modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.25) transparent;
 }
 
 .modal-header {
