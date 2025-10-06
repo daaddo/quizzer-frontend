@@ -772,16 +772,39 @@ class UserApiService {
       });
 
       if (!response.ok) {
+        // Prova a leggere il corpo per messaggi dettagliati (JSON o testo)
+        let detailedMessage = null;
+        try {
+          const raw = await response.text();
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (parsed && typeof parsed === 'object') {
+                detailedMessage = parsed.error || parsed.message || raw;
+              } else {
+                detailedMessage = raw;
+              }
+            } catch {
+              detailedMessage = raw;
+            }
+          }
+        } catch {}
+
         if (response.status === 401) {
           throw new Error('Non autorizzato - effettua nuovamente il login');
         }
         if (response.status === 403) {
-          throw new Error('Accesso negato o token già usato');
+          // Caso specifico richiesto: tempo scaduto
+          const dm = (detailedMessage || '').toString();
+          if (/time is up/i.test(dm) || /expired/i.test(dm)) {
+            throw new Error('Il tempo per consegnare il quiz è finito');
+          }
+          throw new Error(detailedMessage || 'Accesso negato o token già usato');
         }
         if (response.status === 400) {
-          throw new Error('Dati non validi inviati al server');
+          throw new Error(detailedMessage || 'Dati non validi inviati al server');
         }
-        throw new Error(`Errore API: ${response.status}`);
+        throw new Error(detailedMessage || `Errore API: ${response.status}`);
       }
 
       const data = await response.json();

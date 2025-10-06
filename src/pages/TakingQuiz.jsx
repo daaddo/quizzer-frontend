@@ -4,6 +4,7 @@ import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import '../styles/test.css';
 import ConfirmSubmitModal from '../components/ConfirmSubmitModal';
+import InfoModal from '../components/InfoModal';
 
 // Guard a livello di modulo per evitare doppie fetch in StrictMode (monta->smonta->monta)
 const inflightTokens = new Set();
@@ -24,6 +25,36 @@ const TakingQuiz = () => {
   const [durationSecs, setDurationSecs] = useState(null);
   const [remainingSecs, setRemainingSecs] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, loading: false });
+  const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', message: '', variant: 'info' });
+  const autoSubmitRef = useRef(false);
+
+  // Persistenza timer: snapshot del tempo rimanente con timestamp
+  const getRemainingFromSnapshot = (defaultSecs) => {
+    try {
+      if (!token) return defaultSecs;
+      const raw = localStorage.getItem(`takingquiz:timer:${token}`);
+      if (!raw) return defaultSecs;
+      const obj = JSON.parse(raw) || {};
+      const snapRem = Number(obj.remainingSecs);
+      const snapAt = Number(obj.snapshotAt) || Date.parse(obj.snapshotAt);
+      if (!Number.isFinite(snapRem) || !Number.isFinite(snapAt)) return defaultSecs;
+      const elapsed = Math.max(0, Math.floor((Date.now() - snapAt) / 1000));
+      const next = Math.max(0, snapRem - elapsed);
+      return defaultSecs == null ? next : Math.min(defaultSecs, next);
+    } catch {
+      return defaultSecs;
+    }
+  };
+
+  const persistTimerSnapshot = (remaining) => {
+    try {
+      if (!token || remaining == null) return;
+      localStorage.setItem(
+        `takingquiz:timer:${token}`,
+        JSON.stringify({ remainingSecs: Math.max(0, Number(remaining) || 0), snapshotAt: Date.now() })
+      );
+    } catch {}
+  };
 
   // Vista: 'scrolling' (una domanda alla volta) oppure 'cascata' (tutte)
   const [viewMode, setViewMode] = useState(() => {
@@ -98,6 +129,7 @@ const TakingQuiz = () => {
               localStorage.removeItem(`takingquiz:test:${token}`);
               localStorage.removeItem(`takingquiz:answers:${token}`);
               localStorage.removeItem(`takingquiz:results:${token}`);
+              localStorage.removeItem(`takingquiz:timer:${token}`);
             } catch {}
             console.log('[TakingQuiz] Cache locale invalidata per token', token);
 
@@ -112,7 +144,9 @@ const TakingQuiz = () => {
               const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
               const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
               setDurationSecs(secs);
-              setRemainingSecs(secs);
+              const rem = getRemainingFromSnapshot(secs);
+              setRemainingSecs(rem);
+              persistTimerSnapshot(rem);
             } else {
               setDurationSecs(null);
               setRemainingSecs(null);
@@ -142,7 +176,9 @@ const TakingQuiz = () => {
               const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
               const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
               setDurationSecs(secs);
-              setRemainingSecs(secs);
+              const rem = getRemainingFromSnapshot(secs);
+              setRemainingSecs(rem);
+              persistTimerSnapshot(rem);
             }
             console.log('[TakingQuiz] Test caricato da cache per token', token, '-', questionsArr.length, 'domande', metaInfo);
             setLoading(false);
@@ -193,7 +229,9 @@ const TakingQuiz = () => {
           const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
           const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
           setDurationSecs(secs);
-          setRemainingSecs(secs);
+          const rem = getRemainingFromSnapshot(secs);
+          setRemainingSecs(rem);
+          persistTimerSnapshot(rem);
         }
         // 2) Salva il test corrente in localStorage per riutilizzarlo al refresh
         try {
@@ -219,6 +257,21 @@ const TakingQuiz = () => {
     }, 1000);
     return () => clearInterval(t);
   }, [remainingSecs]);
+
+  // Aggiorna snapshot ad ogni variazione del remaining
+  useEffect(() => {
+    if (remainingSecs == null) return;
+    persistTimerSnapshot(remainingSecs);
+  }, [remainingSecs]);
+
+  // Invio automatico quando il tempo arriva a 0
+  useEffect(() => {
+    if (remainingSecs == null) return;
+    if (remainingSecs === 0 && !results && !submitting && !autoSubmitRef.current) {
+      autoSubmitRef.current = true;
+      void handleSubmit();
+    }
+  }, [remainingSecs, results, submitting]);
 
   const formatTime = (total) => {
     if (total == null) return '-';
@@ -300,6 +353,7 @@ const TakingQuiz = () => {
       const res = await userApi.submitAnswersByToken(token, payload);
       setResults(res);
       try { localStorage.setItem(`takingquiz:results:${token}`, JSON.stringify(res)); } catch {}
+      try { localStorage.removeItem(`takingquiz:timer:${token}`); } catch {}
       // calcola punteggio
       const entries = Object.entries(res);
       let correct = 0;
@@ -311,7 +365,8 @@ const TakingQuiz = () => {
       setScore(`${correct}/${entries.length}`);
       console.log(`[TakingQuiz] Risultati salvati in cache per token ${token}: ${entries.length} domande valutate, punteggio: ${correct}/${entries.length}`);
     } catch (err) {
-      alert(err.message || 'Errore durante l\'invio delle risposte');
+      const msg = err?.message || 'Errore durante l\'invio delle risposte';
+      setInfoModal({ isOpen: true, title: 'Consegna quiz', message: msg, variant: /tempo|finito/i.test(msg) ? 'error' : 'error' });
     } finally {
       setSubmitting(false);
       setConfirmModal({ isOpen: false, loading: false });
@@ -507,6 +562,13 @@ const TakingQuiz = () => {
         totalCount={confirmModal.total || questions.length}
         onConfirm={handleConfirmSubmit}
         onCancel={handleCancelSubmit}
+      />
+      <InfoModal
+        isOpen={!!infoModal.isOpen}
+        title={infoModal.title}
+        message={infoModal.message}
+        variant={infoModal.variant}
+        onClose={() => setInfoModal({ isOpen: false, title: '', message: '', variant: 'info' })}
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
-
+import logo from '../assets/logo.png'
 /**
  * Pagina di registrazione utente
  */
@@ -149,7 +149,7 @@ const Register = () => {
       <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div className="auth-card">
           <div className="auth-header" style={{ textAlign: 'center' }}>
-            <img src="/src/assets/logo.png" alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
+            <img src={logo} alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
             <h1 className="login-title" style={{ marginBottom: '0.5rem' }}>Registrazione</h1>
             <p className="login-subtitle" style={{ marginBottom: '1.25rem' }}>Crea il tuo account per iniziare</p>
           </div>

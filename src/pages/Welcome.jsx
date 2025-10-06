@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import logo from '../assets/logo.png'
 
 const Welcome = () => {
   const { isAuthenticated, username, isLoading } = useAuth();
@@ -13,7 +14,7 @@ const Welcome = () => {
         </h1>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
           <span className="logo-badge large">
-            <img src="/src/assets/logo.png" alt="Quizzer" />
+            <img src={logo} alt="Quizzer" />
           </span>
         </div>
         <p className="welcome-subtitle">

@@ -15,6 +15,7 @@ const IssuedQuizInfosPage = () => {
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
   const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {} });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -69,6 +70,29 @@ const IssuedQuizInfosPage = () => {
 
   const openEditIssued = () => {
     setEditModal({ isOpen: true, token: tokenId, initialNumber: null, initialExpiration: null });
+  };
+
+  const handleCopyTakingLink = async () => {
+    try {
+      const link = `${window.location.origin}/takingquiz?token=${encodeURIComponent(tokenId || '')}`;
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const area = document.createElement('textarea');
+        area.value = link;
+        area.setAttribute('readonly', '');
+        area.style.position = 'absolute';
+        area.style.left = '-9999px';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        document.body.removeChild(area);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (e) {
+      alert('Impossibile copiare il link');
+    }
   };
 
   const handleConfirmEditIssued = async ({ numberOfQuestions, expirationDate }) => {
@@ -172,6 +196,14 @@ const IssuedQuizInfosPage = () => {
             <h2 className="quiz-section-title">Tentativi</h2>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
+              <button
+                className="btn btn-secondary"
+                onClick={handleCopyTakingLink}
+                title={`Copia link per eseguire il quiz`}
+                aria-label="Copia link"
+              >
+                {copied ? 'Copiato!' : 'Copia link'}
+              </button>
               <button className="btn btn-secondary" onClick={openEditIssued} title="Modifica" aria-label="Modifica issued">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>

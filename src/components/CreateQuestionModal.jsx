@@ -173,7 +173,7 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
             {/* Campo Titolo */}
             <div className="form-group">
               <label htmlFor="question-title" className="form-label">
-                Titolo (opzionale)
+                Titolo *
               </label>
               <input
                 id="question-title"
@@ -184,9 +184,13 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
                 placeholder="Inserisci un titolo per la domanda..."
                 disabled={loading}
                 maxLength={599}
+                aria-required="true"
               />
               {errors.title && (
                 <div className="form-error">{errors.title}</div>
+              )}
+              {!errors.title && (
+                <div className="form-hint">Obbligatorio, almeno 3 caratteri</div>
               )}
             </div>
 
@@ -294,7 +298,7 @@ const CreateQuestionModal = ({ isOpen, quizId, onSave, onCancel, loading = false
           <button 
             onClick={handleSave}
             className="btn btn-primary"
-            disabled={loading || !questionText.trim()}
+            disabled={loading || !questionText.trim() || !title.trim()}
           >
             {loading ? (
               <>

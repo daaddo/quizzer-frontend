@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -81,7 +82,7 @@ const Login = () => {
       <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <div className="auth-card login-card">
             <div className="login-header">
-              <img src="/src/assets/logo.png" alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
+              <img src={logo} alt="Quizzer" width="88" height="88" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
               <h1 className="login-title" style={{ textAlign: 'center' }}>Accesso Quizzer</h1>
               <p className="login-subtitle" style={{ textAlign: 'center' }}>
                 Accedi al tuo account per entrare nella tua area personale
@@ -164,7 +165,7 @@ const Login = () => {
 
             <div className="oauth-buttons" style={{ marginTop: 0 }}>
               <a
-                href="http://localhost:8080/oauth2/authorization/google"
+                href="https://quizzer.claudiapisa.it/oauth2/authorization/google"
                 className="btn-google"
                 aria-label="Accedi con Google"
                 onClick={() => {

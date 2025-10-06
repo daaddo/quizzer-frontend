@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import logo from '../assets/logo.png'
+
 
 const Header = () => {
   const { isAuthenticated, username, logout, isLoading } = useAuth();
@@ -20,7 +22,7 @@ const Header = () => {
         <nav className="nav">
           <Link to="/" className="logo" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className="logo-badge">
-              <img src="/src/assets/logo.png" alt="Quizzer" />
+              <img src={logo} alt="Quizzer" />
             </span>
             Quizzer
           </Link>

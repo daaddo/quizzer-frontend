@@ -52,6 +52,25 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
     if (expirationDate && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(expirationDate)) {
       errs.push('Data scadenza non valida');
     }
+
+    // Se presente, la scadenza deve essere > now + duration
+    if (errs.length === 0 && expirationDate) {
+      try {
+        const [dh, dm] = String(duration || '00:00').split(':').map((v) => parseInt(v || '0', 10));
+        const durationMs = ((dh || 0) * 60 + (dm || 0)) * 60 * 1000;
+        const now = new Date();
+        const minExpiry = new Date(now.getTime() + durationMs);
+        const exp = new Date(expirationDate);
+        if (Number.isNaN(exp.getTime())) {
+          errs.push('Data scadenza non valida');
+        } else if (exp.getTime() <= minExpiry.getTime()) {
+          errs.push(`La scadenza deve essere successiva ad almeno: ${minExpiry.toLocaleString()}`);
+        }
+      } catch {
+        errs.push('Errore nella validazione della scadenza');
+      }
+    }
+
     setError(errs.length ? errs.join('\n') : null);
     return errs.length === 0;
   };
