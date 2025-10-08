@@ -289,7 +289,7 @@ const IssuedQuizzesPage = () => {
                               type="button"
                               disabled={!it?.tokenId}
                               title="Modifica"
-                              aria-label="Modifica issued"
+                              aria-label="Modifica Test"
                               onClick={() => openEditIssued(it?.tokenId, it?.numberOfQuestions ?? null, it?.expiresAt ?? null)}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

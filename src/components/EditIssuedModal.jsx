@@ -72,6 +72,21 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
     if (expiration !== '' && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(expiration)) {
       errors.push('Data/ora non valida (usa YYYY-MM-DDTHH:mm)');
     }
+    // Blocco scadenze nel passato o entro 2 minuti da ora
+    if (expiration !== '' && errors.length === 0) {
+      try {
+        const exp = new Date(expiration);
+        if (Number.isNaN(exp.getTime())) {
+          errors.push('Data/ora non valida (usa YYYY-MM-DDTHH:mm)');
+        } else {
+          const now = new Date();
+          const minAllowed = new Date(now.getTime() + 2 * 60 * 1000);
+          if (exp.getTime() <= minAllowed.getTime()) {
+            errors.push('La scadenza deve essere almeno tra 2 minuti dal momento attuale');
+          }
+        }
+      } catch {}
+    }
     setError(errors.length ? errors.join('\n') : null);
     return errors.length === 0;
   };
@@ -119,7 +134,7 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="modal-title">Modifica Issued</h2>
+          <h2 className="modal-title">Modifica Test</h2>
           <button onClick={onCancel} className="modal-close-btn" disabled={loading} title="Chiudi">✕</button>
         </div>
 
