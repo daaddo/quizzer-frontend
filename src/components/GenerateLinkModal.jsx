@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import cestinoIcon from '../assets/cestino.png';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -142,14 +143,26 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
 
             <div className="form-group">
               <label className="form-label" htmlFor="gl-ex">Scadenza (opzionale)</label>
-              <input
-                id="gl-ex"
-                type="datetime-local"
-                className="form-input"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-                disabled={disabled}
-              />
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  id="gl-ex"
+                  type="datetime-local"
+                  className="form-input"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
+                  disabled={disabled}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setExpirationDate('')}
+                  disabled={disabled}
+                  title="Resetta scadenza"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                >
+                  <img src={cestinoIcon} alt="Resetta scadenza" style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }} />
+                </button>
+              </div>
               <div className="form-hint">Se vuoto, nessuna scadenza</div>
             </div>
 

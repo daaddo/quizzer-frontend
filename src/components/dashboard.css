@@ -932,6 +932,17 @@
   margin-top: 0.25rem;
 }
 
+.form-success {
+  background: rgba(16, 185, 129, 0.15); /* verde trasparente */
+  color: #065f46; /* verde scuro leggibile */
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 0.9rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  white-space: pre-line;
+}
+
 .form-hint {
   color: #718096;
   font-size: 0.875rem;

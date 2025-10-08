@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../styles/test.css';
+import ConfirmSubmitModal from '../components/ConfirmSubmitModal';
 
 /**
  * Pagina per l'esecuzione del test
@@ -22,6 +23,7 @@ const TestExecution = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [testCompleted, setTestCompleted] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, loading: false, unansweredCount: 0, totalCount: 0 });
 
   // Carica le domande casuali per il test
   useEffect(() => {
@@ -132,23 +134,20 @@ const TestExecution = () => {
   const handleCompleteTest = () => {
     const answeredQuestions = Object.keys(userAnswers).length;
     const totalQuestions = questions.length;
-    
-    if (answeredQuestions < totalQuestions) {
-      const unanswered = totalQuestions - answeredQuestions;
-      if (!window.confirm(`Hai ${unanswered} domande senza risposta. Vuoi completare il test comunque?`)) {
-        return;
-      }
-    }
+    const unanswered = Math.max(0, totalQuestions - answeredQuestions);
+    setConfirmModal({ isOpen: true, loading: false, unansweredCount: unanswered, totalCount: totalQuestions });
+  };
 
-    // Naviga ai risultati con i dati del test
+  const handleConfirmSubmit = () => {
+    setConfirmModal((prev) => ({ ...prev, loading: true }));
     navigate(`/test/${quizId}/results`, {
-      state: {
-        questions,
-        userAnswers,
-        quizTitle,
-        questionCount
-      }
+      state: { questions, userAnswers, quizTitle, questionCount }
     });
+  };
+
+  const handleCancelSubmit = () => {
+    if (confirmModal.loading) return;
+    setConfirmModal({ isOpen: false, loading: false, unansweredCount: 0, totalCount: 0 });
   };
 
   // Loading state
@@ -307,6 +306,7 @@ const TestExecution = () => {
   };
 
   return (
+    <>
     <div className={`test-execution ${viewMode === 'fullpage' ? 'fullpage-mode' : 'scrolling-mode'}`}>
       <div className="container">
         {/* Header del test */}
@@ -454,6 +454,15 @@ const TestExecution = () => {
         </div>
       </div>
     </div>
+    <ConfirmSubmitModal
+    isOpen={!!confirmModal.isOpen}
+    loading={!!confirmModal.loading}
+    unansweredCount={confirmModal.unansweredCount}
+    totalCount={confirmModal.totalCount}
+    onConfirm={handleConfirmSubmit}
+    onCancel={handleCancelSubmit}
+  />
+    </>
   );
 };
 

@@ -16,7 +16,7 @@ const IssuedQuizzesPage = () => {
   const [quiz, setQuiz] = useState(null);
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState('all'); // all | active | expired
-  const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
+  const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null, success: null });
   const [modalLoading, setModalLoading] = useState(false);
 	const [deleteModal, setDeleteModal] = useState({ isOpen: false, item: null, loading: false });
 
@@ -93,7 +93,7 @@ const IssuedQuizzesPage = () => {
 
   const openEditIssued = (tokenId, initialNumber, initialExpiration) => {
     if (!tokenId) return;
-    setEditModal({ isOpen: true, token: tokenId, initialNumber, initialExpiration });
+    setEditModal({ isOpen: true, token: tokenId, initialNumber, initialExpiration, success: null });
   };
 
   const handleConfirmEditIssued = async ({ numberOfQuestions, expirationDate }) => {
@@ -112,17 +112,17 @@ const IssuedQuizzesPage = () => {
         await userApi.updateIssuedExpiration(tokenId, normalized);
         setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, expiresAt: normalized } : x)));
       }
-      setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
-      alert('Test aggiornato');
+      setEditModal((prev) => ({ ...prev, success: 'Test aggiornato' }));
     } catch (e) {
-      alert(e.message || 'Errore aggiornamento issued');
+      // Mantieni il modal aperto senza mostrare form del browser
+      setEditModal((prev) => ({ ...prev, success: null }));
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleCancelEditIssued = () => {
-    setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
+    setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null, success: null });
   };
 
   // Pulsanti singoli rimossi in favore di un'unica azione Modifica
@@ -140,10 +140,8 @@ const IssuedQuizzesPage = () => {
 			await userApi.deleteIssuedQuiz(tokenId);
 			setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
 			setDeleteModal({ isOpen: false, item: null, loading: false });
-      alert('Test eliminato');
 		} catch (e) {
 			setDeleteModal((prev) => ({ ...prev, loading: false }));
-      alert(e.message || 'Errore eliminazione test');
 		}
 	};
 
@@ -323,7 +321,7 @@ const IssuedQuizzesPage = () => {
           )}
         </div>
       </div>
-		<EditIssuedModal
+      <EditIssuedModal
         isOpen={editModal.isOpen}
         token={editModal.token}
         initialNumberOfQuestions={editModal.initialNumber}
@@ -332,6 +330,7 @@ const IssuedQuizzesPage = () => {
         loading={modalLoading}
         onConfirm={handleConfirmEditIssued}
         onCancel={handleCancelEditIssued}
+        successMessage={editModal.success}
       />
 		<DeleteIssuedModal
 			isOpen={deleteModal.isOpen}

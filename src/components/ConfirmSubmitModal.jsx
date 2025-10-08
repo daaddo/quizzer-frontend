@@ -9,8 +9,10 @@ import React, { useEffect } from 'react';
  *  - loading: boolean
  *  - onConfirm: () => void
  *  - onCancel: () => void
+ *  - title?: string
+ *  - message?: string
  */
-const ConfirmSubmitModal = ({ isOpen, unansweredCount = 0, totalCount = 0, loading = false, onConfirm, onCancel }) => {
+const ConfirmSubmitModal = ({ isOpen, unansweredCount = 0, totalCount = 0, loading = false, onConfirm, onCancel, title, message }) => {
   useEffect(() => {
     if (!isOpen) return;
     const scrollY = window.scrollY;
@@ -38,28 +40,37 @@ const ConfirmSubmitModal = ({ isOpen, unansweredCount = 0, totalCount = 0, loadi
   };
 
   const hasUnanswered = (unansweredCount || 0) > 0;
+  const dialogTitle = title || 'Conferma consegna';
 
   return (
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="modal-title">Conferma consegna</h2>
+          <h2 className="modal-title">{dialogTitle}</h2>
           <button onClick={handleCancel} className="modal-close-btn" disabled={loading} title="Chiudi">✕</button>
         </div>
 
         <div className="modal-body">
           <div className="delete-warning">
-            <h3 className="delete-question" style={{ marginBottom: '0.75rem' }}>
-              {hasUnanswered
-                ? `Hai ${unansweredCount} domande senza risposta`
-                : 'Hai risposto a tutte le domande'}
-            </h3>
-            {typeof totalCount === 'number' && totalCount > 0 && (
-              <p style={{ margin: 0 }}>Totale domande: <strong>{totalCount}</strong></p>
+            {message ? (
+              <>
+                <p style={{ margin: 0 }}>{message}</p>
+              </>
+            ) : (
+              <>
+                <h3 className="delete-question" style={{ marginBottom: '0.75rem' }}>
+                  {hasUnanswered
+                    ? `Hai ${unansweredCount} domande senza risposta`
+                    : 'Hai risposto a tutte le domande'}
+                </h3>
+                {typeof totalCount === 'number' && totalCount > 0 && (
+                  <p style={{ margin: 0 }}>Totale domande: <strong>{totalCount}</strong></p>
+                )}
+                <div className="warning-message" style={{ marginTop: '1rem' }}>
+                  <p>Vuoi consegnare il quiz adesso?</p>
+                </div>
+              </>
             )}
-            <div className="warning-message" style={{ marginTop: '1rem' }}>
-              <p>Vuoi consegnare il quiz adesso?</p>
-            </div>
           </div>
         </div>
 

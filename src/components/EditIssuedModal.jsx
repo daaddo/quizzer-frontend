@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import cestinoIcon from '../assets/cestino.png';
 
 /**
  * Modal per modificare i parametri di un Issued Quiz
@@ -13,7 +14,7 @@ import React, { useEffect, useMemo, useState } from 'react';
  *  - onConfirm: ({ numberOfQuestions?: number|null, expirationDate?: string|null }) => void
  *  - onCancel: () => void
  */
-const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpiration, maxQuestions, loading = false, onConfirm, onCancel }) => {
+const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpiration, maxQuestions, loading = false, onConfirm, onCancel, successMessage = null }) => {
   const [numQuestions, setNumQuestions] = useState('');
   const [expiration, setExpiration] = useState(''); // datetime-local (YYYY-MM-DDTHH:mm)
   const [error, setError] = useState(null);
@@ -161,19 +162,34 @@ const EditIssuedModal = ({ isOpen, token, initialNumberOfQuestions, initialExpir
 
             <div className="form-group">
               <label className="form-label" htmlFor="ei-ex">Scadenza</label>
-              <input
-                id="ei-ex"
-                type="datetime-local"
-                className="form-input"
-                value={expiration}
-                onChange={(e) => setExpiration(e.target.value)}
-                disabled={disabled}
-              />
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  id="ei-ex"
+                  type="datetime-local"
+                  className="form-input"
+                  value={expiration}
+                  onChange={(e) => setExpiration(e.target.value)}
+                  disabled={disabled}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setExpiration('')}
+                  disabled={disabled}
+                  title="Resetta scadenza"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                >
+                  <img src={cestinoIcon} alt="Resetta scadenza" style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }} />
+                </button>
+              </div>
               <div className="form-hint">Lascia vuoto per non modificare</div>
             </div>
 
             {error && (
               <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{error}</div>
+            )}
+            {!error && successMessage && (
+              <div className="form-success" style={{ whiteSpace: 'pre-line' }}>{successMessage}</div>
             )}
           </form>
         </div>
