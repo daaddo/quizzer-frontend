@@ -618,6 +618,43 @@ class UserApiService {
   }
 
   /**
+   * Verifica se per un token è richiesto l'inserimento di dati aggiuntivi
+   * GET /api/v1/quizzes/doesRequireDetails?token=...
+   * @param {string} token
+   * @returns {Promise<boolean>} true se richiesti, false altrimenti
+   */
+  async doesRequireDetails(token) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      const url = `${this.baseUrl}/api/v1/quizzes/doesRequireDetails?token=${encodeURIComponent(token)}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 400) throw new Error('Token non valido');
+        if (response.status === 404) throw new Error('Quiz non trovato');
+        if (response.status === 401) throw new Error('Non autorizzato');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+      const text = (await response.text() || '').trim();
+      if (/^(true|false)$/i.test(text)) {
+        return /^true$/i.test(text);
+      }
+      // Se il server risponde JSON booleano
+      try {
+        const data = JSON.parse(text);
+        if (typeof data === 'boolean') return data;
+      } catch {}
+      throw new Error('Risposta non valida dal server');
+    } catch (error) {
+      console.error('Error checking doesRequireDetails:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Genera un token di link per un quiz e costruisce l'URL utilizzabile
    * @param {Object} params
    * @param {number} params.quizId - ID del quiz
@@ -693,28 +730,34 @@ class UserApiService {
   }
 
   /**
-   * Ottiene set casuale di domande tramite token
+   * Ottiene set casuale di domande tramite token (POST)
    * Il backend può restituire:
    * - Array di domande
    * - Oggetto con chiave tipo "QuizInfos[...]": [...]
    * - Oggetto { questions: [...], meta: {...} }
    * Lasciamo che il chiamante normalizzi il formato.
    * @param {string} token
+   * @param {{ user_name?: string, surname?: string, middleName?: string } | null} [additionalInfo]
    * @returns {Promise<any>} Payload bruto dal server
    */
-  async getRandomQuestionsByToken(token) {
+  async getRandomQuestionsByToken(token, additionalInfo) {
     try {
       const url = `${this.baseUrl}/api/v1/quizzes/random?token=${encodeURIComponent(token)}`;
+      const hasBody = additionalInfo && typeof additionalInfo === 'object' && (additionalInfo.user_name || additionalInfo.surname || additionalInfo.middleName);
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: getAuthHeaders(),
-        credentials: 'include'
+        credentials: 'include',
+        body: hasBody ? JSON.stringify({
+          user_name: additionalInfo.user_name || '',
+          surname: additionalInfo.surname || '',
+          middleName: additionalInfo.middleName || ''
+        }) : null
       });
 
       if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('Accesso negato o quiz già richiesto');
-        }
+        if (response.status === 400) throw new Error('Richiesta non valida o dati mancanti');
+        if (response.status === 403) throw new Error('Accesso negato o quiz già richiesto');
         if (response.status === 401) {
           throw new Error('Non autorizzato - effettua nuovamente il login');
         }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import EditIssuedModal from '../components/EditIssuedModal';
@@ -8,13 +8,14 @@ import AttemptResultsModal from '../components/AttemptResultsModal';
 const IssuedQuizInfosPage = () => {
   const navigate = useNavigate();
   const { tokenId } = useParams();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
-  const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {} });
+  const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {}, attempt: null });
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -28,7 +29,8 @@ const IssuedQuizInfosPage = () => {
         setLoading(true);
         setError(null);
         const data = await userApi.getIssuedQuizInfos(tokenId);
-        setItems(Array.isArray(data) ? data : []);
+        const arr = Array.isArray(data) ? data : [];
+        setItems(arr);
       } catch (e) {
         setError(e.message || 'Errore nel caricamento');
       } finally {
@@ -135,7 +137,7 @@ const IssuedQuizInfosPage = () => {
           selectionsMap = Object.fromEntries(Object.entries(obj).map(([qid, v]) => [Number(qid), Array.isArray(v?.selectedOptions) ? v.selectedOptions : []]));
         }
       } catch {}
-      setResultsModal({ isOpen: true, loading: true, error: null, questions: [], selectionsByQuestion: selectionsMap });
+      setResultsModal({ isOpen: true, loading: true, error: null, questions: [], selectionsByQuestion: selectionsMap, attempt: attemptItem });
       let questionsPayload = {};
       try {
         if (attemptItem && typeof attemptItem.questions === 'string') {
@@ -153,6 +155,257 @@ const IssuedQuizInfosPage = () => {
 
   const handleCloseResults = () => {
     setResultsModal({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {} });
+  };
+
+  const computeTotalCorrectOptions = (attemptItem) => {
+    try {
+      let payload = null;
+      if (attemptItem && typeof attemptItem.questions === 'string') {
+        payload = JSON.parse(attemptItem.questions || '{}') || {};
+      } else if (attemptItem && typeof attemptItem.questions === 'object' && attemptItem.questions) {
+        payload = attemptItem.questions;
+      }
+      if (!payload || typeof payload !== 'object') return null;
+      let total = 0;
+      for (const [, v] of Object.entries(payload)) {
+        const correctArr = Array.isArray(v?.correctOptions) ? v.correctOptions : [];
+        total += correctArr.length;
+      }
+      return Number.isFinite(total) ? total : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const formatAttemptScore = (attemptItem) => {
+    const score = attemptItem?.score;
+    const denom = computeTotalCorrectOptions(attemptItem);
+    if ((score == null || Number.isNaN(Number(score))) && (denom == null)) return '-';
+    const left = (score == null || Number.isNaN(Number(score))) ? '-' : String(score);
+    const right = (denom == null) ? '-' : String(denom);
+    return `${left}/${right}`;
+  };
+
+  const loadJsPDF = async () => {
+    return new Promise((resolve, reject) => {
+      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
+      const existing = document.getElementById('jspdf-umd');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.jspdf.jsPDF));
+        existing.addEventListener('error', () => reject(new Error('Impossibile caricare jsPDF')));
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'jspdf-umd';
+      script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+      script.async = true;
+      script.onload = () => resolve(window.jspdf.jsPDF);
+      script.onerror = () => reject(new Error('Impossibile caricare jsPDF'));
+      document.head.appendChild(script);
+    });
+  };
+
+  const handleDownloadAttemptPdf = async (attempt) => {
+    try {
+      const jsPDF = await loadJsPDF();
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginLeft = 15;
+      const marginRight = 15;
+      const contentWidth = pageWidth - marginLeft - marginRight;
+      let y = 15;
+
+      const ensureSpace = (h = 8) => {
+        if (y + h > pageHeight - 12) {
+          doc.addPage();
+          y = 15;
+        }
+      };
+
+      // Header (copia titolo del form risultati)
+      doc.setFontSize(16);
+      doc.text('Risultati tentativo', pageWidth / 2, y, { align: 'center' });
+      y += 10;
+      doc.setFontSize(12);
+
+      const name = (attempt?.user_name || '').trim();
+      const surname = (attempt?.surname || '').trim();
+      const middle = (attempt?.middle_name || '').trim();
+      const hasAdditional = !!(name || surname || middle);
+      const displayUser = attempt?.userName || attempt?.username || String(attempt?.userId || '');
+
+      // User info
+      const userInfoLines = [];
+      if (hasAdditional) {
+        userInfoLines.push(`Nome: ${name || '-'}`);
+        userInfoLines.push(`Cognome: ${surname || '-'}`);
+        userInfoLines.push(`Secondo nome: ${middle || '-'}`);
+        userInfoLines.push(`Utente: ${displayUser || '-'}`);
+      } else {
+        userInfoLines.push(`Utente: ${displayUser || '-'}`);
+      }
+      userInfoLines.forEach((line) => { ensureSpace(); doc.text(line, marginLeft, y); y += 7; });
+
+      // Punteggio formattato X/Y (solo rapporto: score/risposteCorrette)
+      const formattedScore = formatAttemptScore(attempt);
+      if (formattedScore && formattedScore !== '-/-') {
+        ensureSpace();
+        doc.text(String(formattedScore), marginLeft, y);
+        y += 8;
+      }
+      // Iniziato e Finito su due righe
+      if (attempt?.attemptedAt) {
+        ensureSpace();
+        doc.text(`Iniziato: ${new Date(attempt.attemptedAt).toLocaleString()}`, marginLeft, y);
+        y += 7;
+      }
+      if (attempt?.finishedAt) {
+        ensureSpace();
+        doc.text(`Finito: ${new Date(attempt.finishedAt).toLocaleString()}`, marginLeft, y);
+        y += 8;
+      }
+
+      // Ricostruisci selections map e payload
+      let selectionsMap = {};
+      let questionsPayload = {};
+      try {
+        if (attempt && typeof attempt.questions === 'string') {
+          questionsPayload = JSON.parse(attempt.questions || '{}') || {};
+        } else if (attempt && typeof attempt.questions === 'object' && attempt.questions) {
+          questionsPayload = attempt.questions;
+        }
+        selectionsMap = Object.fromEntries(Object.entries(questionsPayload).map(([qid, v]) => [Number(qid), Array.isArray(v?.selectedOptions) ? v.selectedOptions : []]));
+      } catch {}
+
+      // Carica domande complete
+      let questions = [];
+      try {
+        const data = await userApi.getQuestionsByTokenWithPayload(tokenId, questionsPayload);
+        questions = Array.isArray(data) ? data : [];
+      } catch (e) {
+        alert('Impossibile caricare le domande per il PDF');
+        return;
+      }
+
+      // Legenda (copia del form: tabella Stato/Significato, usa pallino come separatore altrove)
+      ensureSpace(20);
+      doc.setFontSize(13);
+      doc.text('Legenda', marginLeft, y);
+      y += 7;
+      doc.setFontSize(12);
+      // Intestazioni
+      doc.text('Stato', marginLeft, y);
+      doc.text('Significato', marginLeft + 30, y);
+      y += 6;
+      // Riga 1
+      doc.setTextColor(0, 187, 119);
+      doc.text('■', marginLeft, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Risposte giuste selezionate', marginLeft + 30, y);
+      y += 6;
+      // Riga 2
+      doc.setTextColor(13, 110, 253);
+      doc.text('■', marginLeft, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Risposte giuste non selezionate', marginLeft + 30, y);
+      y += 6;
+      // Riga 3
+      doc.setTextColor(220, 53, 69);
+      doc.text('■', marginLeft, y);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Risposte sbagliate selezionate', marginLeft + 30, y);
+      y += 10;
+
+      // Domande e risposte come tabella Titolo | Domanda | Risposte (copia del form)
+      // Larghezze tabella: Titolo 150px, Domanda 230px, Risposte resto
+      const pxToMm = (px) => (px * 25.4) / 96;
+      const desiredTitleMm = pxToMm(150);
+      const desiredQuestionMm = pxToMm(230);
+      const safeContent = Math.max(60, contentWidth);
+      const titleW = Math.min(desiredTitleMm, safeContent - 20);
+      const questionW = Math.min(desiredQuestionMm, Math.max(20, safeContent - titleW - 20));
+      const answersW = Math.max(20, contentWidth - titleW - questionW);
+      const col1X = marginLeft;
+      const col2X = marginLeft + titleW;
+      const col3X = marginLeft + titleW + questionW;
+      const lineHeight = 6;
+
+      const drawHeader = () => {
+        ensureSpace(10);
+        doc.setFillColor(240, 240, 240);
+        doc.rect(marginLeft, y, contentWidth, 8, 'F');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        doc.text('Titolo', col1X + 2, y + 5);
+        doc.text('Domanda', col2X + 2, y + 5);
+        doc.text('Risposte', col3X + 2, y + 5);
+        y += 8;
+      };
+
+      drawHeader();
+
+      questions.forEach((q) => {
+        const qTitle = q?.title || '-';
+        const qText = q?.question ? String(q.question) : '-';
+        const selectedIds = Array.isArray(selectionsMap?.[q.id]) ? selectionsMap[q.id] : [];
+        const answersArr = Array.isArray(q?.answers) ? q.answers : Array.isArray(q?.list) ? q.list : [];
+
+        const titleLines = doc.splitTextToSize(qTitle, titleW - 4);
+        const questionLines = doc.splitTextToSize(qText, questionW - 4);
+
+        const answerLineChunks = [];
+        answersArr.forEach((a) => {
+          const isSelected = selectedIds.includes(a.id);
+          const isCorrect = !!a.correct;
+          let color = [0, 0, 0];
+          if (isCorrect && isSelected) color = [0, 187, 119];
+          else if (isCorrect && !isSelected) color = [13, 110, 253];
+          else if (!isCorrect && isSelected) color = [220, 53, 69];
+          const wrapped = doc.splitTextToSize(`• ${a.answer}`, answersW - 4);
+          wrapped.forEach((line) => {
+            answerLineChunks.push({ text: line, color });
+          });
+        });
+        if (answerLineChunks.length === 0) answerLineChunks.push({ text: '-', color: [0, 0, 0] });
+
+        // Altezza riga basata sul numero massimo di linee tra le colonne (allineamento top)
+        const rowLines = Math.max(titleLines.length, questionLines.length, answerLineChunks.length);
+        const rowHeight = rowLines * lineHeight + 4;
+
+        ensureSpace(rowHeight + 2);
+        // Ripeti header se va a nuova pagina
+        if (y === 15) {
+          drawHeader();
+        }
+
+        // Celle
+        doc.rect(col1X, y, titleW, rowHeight);
+        doc.rect(col2X, y, questionW, rowHeight);
+        doc.rect(col3X, y, answersW, rowHeight);
+
+        // Testo celle (allineamento top, margine interno 4)
+        let ty = y + 4;
+        titleLines.forEach((line) => { doc.text(line, col1X + 2, ty); ty += lineHeight; });
+
+        let qy = y + 4;
+        questionLines.forEach((line) => { doc.text(line, col2X + 2, qy); qy += lineHeight; });
+
+        let ay = y + 4;
+        answerLineChunks.forEach((chunk) => {
+          doc.setTextColor(chunk.color[0], chunk.color[1], chunk.color[2]);
+          doc.text(chunk.text, col3X + 2, ay);
+          ay += lineHeight;
+        });
+        doc.setTextColor(0, 0, 0);
+
+        y += rowHeight;
+      });
+
+      doc.save('informazioni_quiz.pdf');
+    } catch (e) {
+      alert('Impossibile generare il PDF');
+    }
   };
 
   if (loading) {
@@ -229,17 +482,31 @@ const IssuedQuizInfosPage = () => {
                     <th style={{ textAlign: 'left' }}>Punteggio</th>
                     <th style={{ textAlign: 'left' }}>Iniziato</th>
                     <th style={{ textAlign: 'left' }}>Finito</th>
+                    {(location?.state?.requiredDetails || (() => { try { return localStorage.getItem(`issued:required_details:${tokenId}`) === 'true'; } catch { return false; } })()) && (
+                      <>
+                        <th style={{ textAlign: 'left' }}>Nome</th>
+                        <th style={{ textAlign: 'left' }}>Cognome</th>
+                        <th style={{ textAlign: 'left' }}>Secondo nome</th>
+                      </>
+                    )}
                     <th style={{ textAlign: 'left' }}>Azione</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((it, idx) => (
                     <tr key={idx}>
-                      <td>{it?.username ?? it?.userId ?? '-'}</td>
+                      <td>{it?.userName ?? it?.username ?? it?.userId ?? '-'}</td>
                       <td>{it?.status ?? '-'}</td>
-                      <td>{it?.score ?? '-'}</td>
+                      <td>{formatAttemptScore(it)}</td>
                       <td>{formatDateTime(it?.attemptedAt)}</td>
                       <td>{formatDateTime(it?.finishedAt)}</td>
+                      {(location?.state?.requiredDetails || (() => { try { return localStorage.getItem(`issued:required_details:${tokenId}`) === 'true'; } catch { return false; } })()) && (
+                        <>
+                          <td>{it?.user_name ?? '-'}</td>
+                          <td>{it?.surname ?? '-'}</td>
+                          <td>{it?.middle_name ?? '-'}</td>
+                        </>
+                      )}
                       <td>
                          <div className="table-actions">
                           <button
@@ -247,6 +514,11 @@ const IssuedQuizInfosPage = () => {
                             type="button"
                             onClick={() => handleOpenResults(it)}
                           >Risultati</button>
+                          <button
+                            className="quiz-action-btn secondary"
+                            type="button"
+                            onClick={() => handleDownloadAttemptPdf(it)}
+                          >Scarica PDF</button>
                           <button
                             className="quiz-action-btn secondary"
                             type="button"
@@ -279,6 +551,7 @@ const IssuedQuizInfosPage = () => {
         error={resultsModal.error}
         questions={resultsModal.questions}
         selectionsByQuestion={resultsModal.selectionsByQuestion}
+        attemptInfo={resultsModal.attempt}
         onClose={handleCloseResults}
       />
     </div>

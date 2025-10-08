@@ -37,6 +37,14 @@ const IssuedQuizzesPage = () => {
         ]);
         setQuiz(q);
         setItems(Array.isArray(issued) ? issued : []);
+        try {
+          // Persisti mapping required_details per token per uso su /issued/:token
+          (Array.isArray(issued) ? issued : []).forEach((it) => {
+            if (it && it.tokenId) {
+              localStorage.setItem(`issued:required_details:${it.tokenId}`, String(!!it.required_details));
+            }
+          });
+        } catch {}
       } catch (e) {
         setError(e.message || 'Errore nel caricamento');
       } finally {
@@ -239,6 +247,7 @@ const IssuedQuizzesPage = () => {
                     <th>Emesso il</th>
                     <th>Scade il</th>
                     <th>Durata</th>
+                    <th>Info obbligatorie</th>
                     <th>Azione</th>
                   </tr>
                 </thead>
@@ -256,13 +265,14 @@ const IssuedQuizzesPage = () => {
                         <td>{formatDateTime(it?.issuedAt)}</td>
                         <td>{formatDateTime(it?.expiresAt)}</td>
                         <td>{formatDuration(it?.duration)}</td>
+                        <td>{it?.required_details === true ? 'Sì' : 'No'}</td>
                         <td>
                           <div className="table-actions">
                             <button
                               className="quiz-action-btn secondary"
                               type="button"
                               disabled={!it?.tokenId}
-                              onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`)}
+                              onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`, { state: { requiredDetails: !!it?.required_details } })}
                             >Dettagli</button>
                             <button
                               className="quiz-action-btn secondary"

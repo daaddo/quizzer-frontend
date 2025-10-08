@@ -8,9 +8,10 @@ import React, { useEffect } from 'react';
  *  - error: string|null
  *  - questions: Array<{ id, title, question, answers: [{ id, answer, correct }] }>
  *  - selectionsByQuestion: Record<number, number[]> | null // mappa questionId -> selectedOptions ids
+ *  - attemptInfo?: { user_name?: string, surname?: string, middle_name?: string, userName?: string, username?: string }
  *  - onClose: () => void
  */
-const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions = [], selectionsByQuestion = null, onClose }) => {
+const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions = [], selectionsByQuestion = null, attemptInfo = null, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       const scrollY = window.scrollY;
@@ -49,6 +50,18 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
 
           {!loading && error && (
             <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{error}</div>
+          )}
+
+          {!loading && !error && attemptInfo && (
+            <div className="attempt-user-info" style={{ marginBottom: '1rem' }}>
+              <h3 style={{ margin: '0 0 0.25rem 0' }}>Informazioni utente</h3>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div><strong>Utente:</strong> {attemptInfo.userName || attemptInfo.username || '-'}</div>
+                <div><strong>Nome:</strong> {attemptInfo.user_name || '-'}</div>
+                <div><strong>Cognome:</strong> {attemptInfo.surname || '-'}</div>
+                <div><strong>Secondo nome:</strong> {attemptInfo.middle_name || '-'}</div>
+              </div>
+            </div>
           )}
 
           {!loading && !error && (!questions || questions.length === 0) && (

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import '../styles/test.css';
@@ -27,6 +28,62 @@ const TakingQuiz = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, loading: false });
   const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', message: '', variant: 'info' });
   const autoSubmitRef = useRef(false);
+
+  const [detailsRequired, setDetailsRequired] = useState(false);
+  const [detailsForm, setDetailsForm] = useState({ user_name: '', surname: '', middleName: '' });
+  const [detailsError, setDetailsError] = useState(null);
+  const [detailsSubmitting, setDetailsSubmitting] = useState(false);
+  const { username } = useAuth();
+
+  const loadJsPDF = async () => {
+    return new Promise((resolve, reject) => {
+      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
+      const existing = document.getElementById('jspdf-umd');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.jspdf.jsPDF));
+        existing.addEventListener('error', () => reject(new Error('Impossibile caricare jsPDF')));
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'jspdf-umd';
+      script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+      script.async = true;
+      script.onload = () => resolve(window.jspdf.jsPDF);
+      script.onerror = () => reject(new Error('Impossibile caricare jsPDF'));
+      document.head.appendChild(script);
+    });
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      const jsPDF = await loadJsPDF();
+      const doc = new jsPDF();
+      const marginLeft = 20;
+      let y = 20;
+
+      doc.setFontSize(16);
+      doc.text('Informazioni quiz', 105, y, { align: 'center' });
+      y += 14;
+      doc.setFontSize(12);
+
+      const name = (detailsForm.user_name || '').trim();
+      const surname = (detailsForm.surname || '').trim();
+      const middle = (detailsForm.middleName || '').trim();
+      const hasAdditional = !!(name || surname || middle);
+
+      if (hasAdditional) {
+        doc.text(`Nome: ${name || '-'}`, marginLeft, y); y += 8;
+        doc.text(`Cognome: ${surname || '-'}`, marginLeft, y); y += 8;
+        doc.text(`Secondo nome: ${middle || '-'}`, marginLeft, y); y += 8;
+      } else {
+        doc.text(`Utente: ${username || '-'}`, marginLeft, y); y += 8;
+      }
+
+      doc.save('informazioni_quiz.pdf');
+    } catch (e) {
+      setDetailsError('Impossibile generare il PDF');
+    }
+  };
 
   // Persistenza timer: snapshot del tempo rimanente con timestamp
   const getRemainingFromSnapshot = (defaultSecs) => {
@@ -121,7 +178,12 @@ const TakingQuiz = () => {
       // Revalida con il server: se nuove domande sono disponibili, azzera cache locale e ricarica stato
       const revalidateFromServer = async () => {
         try {
-          const data = await userApi.getRandomQuestionsByToken(token);
+          let storedDetails = null;
+          try {
+            const raw = localStorage.getItem(`takingquiz:details:${token}`);
+            if (raw) storedDetails = JSON.parse(raw);
+          } catch {}
+          const data = await userApi.getRandomQuestionsByToken(token, storedDetails);
           const { questionsArr, metaInfo } = normalizePayload(data);
           if (Array.isArray(questionsArr) && questionsArr.length > 0) {
             // Pulisci tutto ciò che è in cache per questo token
@@ -221,7 +283,28 @@ const TakingQuiz = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await userApi.getRandomQuestionsByToken(token);
+        // Pre-check se servono dettagli aggiuntivi
+        try {
+          const requires = await userApi.doesRequireDetails(token);
+          if (requires) {
+            setDetailsRequired(true);
+            setLoading(false);
+            inflightTokens.delete(token);
+            return;
+          }
+        } catch (checkErr) {
+          setError(checkErr.message || 'Errore verifica prerequisiti');
+          setLoading(false);
+          inflightTokens.delete(token);
+          return;
+        }
+
+        let storedDetails = null;
+        try {
+          const raw = localStorage.getItem(`takingquiz:details:${token}`);
+          if (raw) storedDetails = JSON.parse(raw);
+        } catch {}
+        const data = await userApi.getRandomQuestionsByToken(token, storedDetails);
         const { questionsArr, metaInfo } = normalizePayload(data);
         setQuestions(questionsArr);
         setMeta(metaInfo);
@@ -391,6 +474,69 @@ const TakingQuiz = () => {
     setConfirmModal({ isOpen: false, loading: false });
   };
 
+  const handleSubmitDetails = async () => {
+    if (!token || detailsSubmitting) return;
+    const userName = (detailsForm.user_name || '').trim();
+    const surname = (detailsForm.surname || '').trim();
+    const middleName = (detailsForm.middleName || '').trim();
+    if (!userName || !surname) {
+      setDetailsError('Inserisci nome e cognome');
+      return;
+    }
+    try {
+      setDetailsSubmitting(true);
+      setDetailsError(null);
+      const data = await userApi.getRandomQuestionsByToken(token, { user_name: userName, surname, middleName });
+
+      let questionsArr = [];
+      let metaInfo = { numberOfQuestions: null, expirationDate: null, duration: null };
+      try {
+        if (Array.isArray(data)) {
+          questionsArr = data;
+        } else if (data && typeof data === 'object') {
+          if (Array.isArray(data.questions)) {
+            questionsArr = data.questions;
+            if (data.meta) metaInfo = { ...metaInfo, ...data.meta };
+          } else {
+            const keys = Object.keys(data);
+            if (keys.length === 1 && Array.isArray(data[keys[0]])) {
+              const header = keys[0];
+              questionsArr = data[header] || [];
+              const durMatch = /duration=([\d:]+)/.exec(header);
+              const expMatch = /expirationDate=([^,\]]+)/.exec(header);
+              const numMatch = /numberOfQuestions=(\d+)/.exec(header);
+              metaInfo = {
+                numberOfQuestions: numMatch ? parseInt(numMatch[1], 10) : null,
+                expirationDate: expMatch ? (expMatch[1] === 'null' ? null : expMatch[1]) : null,
+                duration: durMatch ? durMatch[1] : null,
+              };
+            }
+          }
+        }
+      } catch {}
+
+      setQuestions(questionsArr);
+      setMeta(metaInfo);
+      if (metaInfo.duration) {
+        const parts = String(metaInfo.duration).split(':').map((n) => parseInt(n || '0', 10));
+        const secs = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+        setDurationSecs(secs);
+        const rem = getRemainingFromSnapshot(secs);
+        setRemainingSecs(rem);
+        persistTimerSnapshot(rem);
+      }
+      try {
+        localStorage.setItem(`takingquiz:test:${token}`, JSON.stringify({ questions: questionsArr, meta: metaInfo }));
+        localStorage.setItem(`takingquiz:details:${token}`, JSON.stringify({ user_name: userName, surname, middleName }));
+      } catch {}
+      setDetailsRequired(false);
+    } catch (err) {
+      setDetailsError(err.message || 'Errore nel caricamento delle domande');
+    } finally {
+      setDetailsSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -399,6 +545,44 @@ const TakingQuiz = () => {
             <div className="loading-spinner-large"></div>
             <h2>Caricamento domande</h2>
             <p>Recupero del quiz in corso...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (detailsRequired && questions.length === 0) {
+    return (
+      <div className="dashboard-loading">
+        <div className="container">
+          <div className="loading-content" style={{ maxWidth: 520, margin: '2rem auto', width: '100%' }}>
+            <h2>Informazioni aggiuntive</h2>
+            <p style={{ marginBottom: '1rem' }}>Per iniziare, inserisci i seguenti dati.</p>
+            <form onSubmit={(e) => { e.preventDefault(); void handleSubmitDetails(); }}>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ai-name">Nome</label>
+                <input id="ai-name" type="text" className="form-input" value={detailsForm.user_name}
+                  onChange={(e) => setDetailsForm({ ...detailsForm, user_name: e.target.value })} disabled={detailsSubmitting} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ai-surname">Cognome</label>
+                <input id="ai-surname" type="text" className="form-input" value={detailsForm.surname}
+                  onChange={(e) => setDetailsForm({ ...detailsForm, surname: e.target.value })} disabled={detailsSubmitting} />
+              </div>
+              <div className="form-group">
+                <label className="form-label" htmlFor="ai-middle">Secondo nome (opzionale)</label>
+                <input id="ai-middle" type="text" className="form-input" value={detailsForm.middleName}
+                  onChange={(e) => setDetailsForm({ ...detailsForm, middleName: e.target.value })} disabled={detailsSubmitting} />
+              </div>
+              {detailsError && <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{detailsError}</div>}
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => navigate('/dashboard')} disabled={detailsSubmitting}>Annulla</button>
+                <button type="button" className="btn btn-secondary" onClick={() => void handleDownloadPdf()} disabled={detailsSubmitting}>Scarica PDF</button>
+                <button type="submit" className="btn btn-primary" disabled={detailsSubmitting}>
+                  {detailsSubmitting ? 'Invio...' : 'Continua'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
