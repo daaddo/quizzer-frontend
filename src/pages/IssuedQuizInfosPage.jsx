@@ -112,9 +112,9 @@ const IssuedQuizInfosPage = () => {
         await userApi.updateIssuedExpiration(tokenId, normalized);
       }
       setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
-      alert('Issued aggiornato');
+      alert('Test aggiornato');
     } catch (e) {
-      alert(e.message || 'Errore aggiornamento issued');
+      alert(e.message || 'Errore aggiornamento test');
     } finally {
       setModalLoading(false);
     }
@@ -124,7 +124,7 @@ const IssuedQuizInfosPage = () => {
     setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   };
 
-  // Eliminazione issued non esposta qui per richiesta: rimossa dalla UI
+  // Eliminazione test non esposta qui per richiesta: rimossa dalla UI
 
   const handleOpenResults = async (attemptItem) => {
      try {
@@ -460,7 +460,7 @@ const IssuedQuizInfosPage = () => {
               >
                 {copied ? 'Copiato!' : 'Copia link'}
               </button>
-              <button className="btn btn-secondary" onClick={openEditIssued} title="Modifica" aria-label="Modifica issued">
+              <button className="btn btn-secondary" onClick={openEditIssued} title="Modifica" aria-label="Modifica test">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
                   <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>

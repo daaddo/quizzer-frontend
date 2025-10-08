@@ -40,7 +40,7 @@ const IssuedQuizzesPage = () => {
         setQuiz(q);
         setItems(Array.isArray(issued) ? issued : []);
         try {
-          // Persisti mapping required_details per token per uso su /issued/:token
+        // Persisti mapping required_details per token per uso su /issued/:token
           (Array.isArray(issued) ? issued : []).forEach((it) => {
             if (it && it.tokenId) {
               localStorage.setItem(`issued:required_details:${it.tokenId}`, String(!!it.required_details));
@@ -113,7 +113,7 @@ const IssuedQuizzesPage = () => {
         setItems((prev) => prev.map((x) => (x?.tokenId === tokenId ? { ...x, expiresAt: normalized } : x)));
       }
       setEditModal({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
-      alert('Issued aggiornato');
+      alert('Test aggiornato');
     } catch (e) {
       alert(e.message || 'Errore aggiornamento issued');
     } finally {
@@ -140,10 +140,10 @@ const IssuedQuizzesPage = () => {
 			await userApi.deleteIssuedQuiz(tokenId);
 			setItems((prev) => prev.filter((x) => x?.tokenId !== tokenId));
 			setDeleteModal({ isOpen: false, item: null, loading: false });
-			alert('Issued eliminato');
+      alert('Test eliminato');
 		} catch (e) {
 			setDeleteModal((prev) => ({ ...prev, loading: false }));
-			alert(e.message || 'Errore eliminazione issued');
+      alert(e.message || 'Errore eliminazione test');
 		}
 	};
 

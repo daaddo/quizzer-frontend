@@ -1033,7 +1033,7 @@
   display: block;
   margin-bottom: 0.75rem;
   line-height: 1.2;
-  height: calc(1.2em * 2.5); /* ~2.5 righe visibili */
+  height: calc(1.2em * 1.4 ); /* ~2.5 righe visibili */
   overflow-y: auto; /* scroll verticale */
   overflow-x: hidden;
   padding-right: 4px; /* spazio per scrollbar */
@@ -1045,6 +1045,12 @@
 .quiz-details-center strong::-webkit-scrollbar-track { background: transparent; }
 .quiz-details-center strong::-webkit-scrollbar-thumb { background: transparent; }
 .quiz-details-center strong::-webkit-scrollbar-thumb:hover { background: transparent; }
+
+.compact-grid {
+  display: grid;
+  gap: 30px;
+  line-height: 1.1;
+}
 
 .quiz-description-preview {
   color: #718096;

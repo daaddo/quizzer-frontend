@@ -77,7 +77,7 @@ const DeleteIssuedModal = ({ isOpen, issued, loading = false, onConfirm, onCance
             <h3 className="delete-question" style={{ fontSize: '1.25rem' }}>Sei sicuro di voler eliminare questo Test?</h3>
 
             <div className="quiz-details-center">
-              <div style={{ display: 'grid', gap: 0, lineHeight: 1.1 }}>
+              <div className="compact-grid">
                 <div style={{ margin: 0, padding: 0 }}><strong>Domande:</strong> {issued?.numberOfQuestions ?? '-'}</div>
                 <div style={{ margin: 0, padding: 0 }}><strong>Emesso il:</strong> {formatDateTime(issued?.issuedAt)}</div>
                 <div style={{ margin: 0, padding: 0 }}><strong>Scade il:</strong> {formatDateTime(issued?.expiresAt)}</div>
@@ -87,7 +87,7 @@ const DeleteIssuedModal = ({ isOpen, issued, loading = false, onConfirm, onCance
 
             <div className="warning-message" style={{ marginTop: '0.5rem' }}>
               <p><strong>Questa azione non può essere annullata.</strong></p>
-              <p>Verranno rimossi anche i tentativi associati a questo issued.</p>
+              <p>Verranno rimossi anche i tentativi associati a questo test.</p>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ const DeleteIssuedModal = ({ isOpen, issued, loading = false, onConfirm, onCance
                 Eliminazione...
               </>
             ) : (
-              <>Elimina Issued</>
+              <>Elimina Test</>
             )}
           </button>
         </div>
