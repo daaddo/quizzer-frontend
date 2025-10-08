@@ -195,10 +195,10 @@ const Dashboard = () => {
     setGenerateLinkModal({ isOpen: false, quiz: null, result: null });
   };
 
-  const handleConfirmGenerateLink = async ({ quizId, numberOfQuestions, duration, expirationDate }) => {
+  const handleConfirmGenerateLink = async ({ quizId, numberOfQuestions, duration, expirationDate, requiredDetails }) => {
     try {
       setModalLoading(true);
-      const res = await userApi.generateLink({ quizId, numberOfQuestions, duration, expirationDate });
+      const res = await userApi.generateLink({ quizId, numberOfQuestions, duration, expirationDate, requiredDetails });
       setGenerateLinkModal(prev => ({ ...prev, result: res }));
     } catch (error) {
       console.error('Errore generazione link:', error);

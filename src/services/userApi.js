@@ -624,9 +624,10 @@ class UserApiService {
    * @param {number} params.numberOfQuestions - Numero di domande
    * @param {string} params.duration - Durata nel formato HH:mm:ss (accetta anche HH:mm)
    * @param {string|null} params.expirationDate - Data scadenza nel formato YYYY-MM-DDTHH:mm:ss oppure null
+   * @param {boolean} [params.requiredDetails=false] - Se richiedere informazioni aggiuntive
    * @returns {Promise<{ token: string, link: string }>} Token e link completo
    */
-  async generateLink({ quizId, numberOfQuestions, duration, expirationDate }) {
+  async generateLink({ quizId, numberOfQuestions, duration, expirationDate, requiredDetails }) {
     try {
       // Normalizza durata: consenti HH:mm e converti in HH:mm:ss
       let normalizedDuration = duration || null;
@@ -644,7 +645,8 @@ class UserApiService {
         quizId,
         numberOfQuestions,
         duration: normalizedDuration,
-        expirationDate: normalizedExpiration
+        expirationDate: normalizedExpiration,
+        requiredDetails: Boolean(requiredDetails)
       };
 
       const response = await fetch(`${this.baseUrl}/api/v1/quizzes/link`, {

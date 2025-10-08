@@ -9,6 +9,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
   const [numberOfQuestions, setNumberOfQuestions] = useState(1);
   const [duration, setDuration] = useState('00:30'); // HH:mm
   const [expirationDate, setExpirationDate] = useState(''); // datetime-local
+  const [requiredDetails, setRequiredDetails] = useState(false);
   const [error, setError] = useState(null);
 
   const maxQuestions = useMemo(() => (quiz?.questionCount ? quiz.questionCount : 0), [quiz]);
@@ -25,6 +26,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       setNumberOfQuestions(quiz?.questionCount && quiz.questionCount > 0 ? Math.min(quiz.questionCount, 10) : 1);
       setDuration('00:30');
       setExpirationDate('');
+      setRequiredDetails(false);
       setError(null);
 
       return () => {
@@ -81,7 +83,8 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       quizId: quiz.id,
       numberOfQuestions,
       duration, // HH:mm (verrà normalizzato a HH:mm:ss nel client API)
-      expirationDate: expirationDate || null
+      expirationDate: expirationDate || null,
+      requiredDetails
     });
   };
 
@@ -148,6 +151,21 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
                 disabled={disabled}
               />
               <div className="form-hint">Se vuoto, nessuna scadenza</div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="gl-rd">Informazioni aggiuntive Obbligatorie</label>
+              <div className="form-checkbox-row">
+                <input
+                  id="gl-rd"
+                  type="checkbox"
+                  className="form-checkbox"
+                  checked={requiredDetails}
+                  onChange={(e) => setRequiredDetails(e.target.checked)}
+                  disabled={disabled}
+                />
+                <span style={{ marginLeft: '0.5rem' }}>Richiedi informazioni aggiuntive prima di iniziare</span>
+              </div>
             </div>
 
             {error && (

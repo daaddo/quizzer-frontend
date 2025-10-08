@@ -60,6 +60,36 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
 
           {!loading && !error && questions && questions.length > 0 && (
             <div className="table-responsive" style={{ overflowX: 'auto' }}>
+              {/* Legenda stato risposte */}
+              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '0.75rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', width: '120px' }}>Stato</th>
+                    <th style={{ textAlign: 'left' }}>Significato</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0b7' }}></span>
+                    </td>
+                    <td>Risposte giuste selezionate</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0d6efd' }}></span>
+                    </td>
+                    <td>Risposte giuste non selezionate</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#dc3545' }}></span>
+                    </td>
+                    <td>Risposte sbagliate selezionate</td>
+                  </tr>
+                </tbody>
+              </table>
+
               <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
@@ -80,12 +110,18 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                           {(q.answers || []).map((a) => {
                             const isSelected = selectedIds.includes(a.id);
                             const isCorrect = !!a.correct;
-                            const color = isCorrect ? '#0b7' : (isSelected ? '#dc3545' : undefined);
+                            // Colori:
+                            // - Verde (#0b7): corretta e selezionata
+                            // - Blu   (#0d6efd): corretta e NON selezionata
+                            // - Rosso (#dc3545): sbagliata e selezionata
+                            let color;
+                            if (isCorrect && isSelected) color = '#0b7';
+                            else if (isCorrect && !isSelected) color = '#0d6efd';
+                            else if (!isCorrect && isSelected) color = '#dc3545';
                             return (
                               <li key={a.id} style={{ color }}>
                                 {a.answer}
-                                {isSelected && ' (selezionata)'}
-                                {isCorrect && ' (corretta)'}
+                                {/* rimosso testo selezionata per richiesta UX */}
                               </li>
                             );
                           })}
