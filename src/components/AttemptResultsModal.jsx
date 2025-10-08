@@ -103,7 +103,7 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                 </tbody>
               </table>
 
-              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse' }} cellPadding="4" cellSpacing="0">
                 <thead>
                   <tr>
                     <th style={{ textAlign: 'left' }}>Titolo</th>
@@ -116,8 +116,8 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                     const selectedIds = Array.isArray(selectionsByQuestion?.[q.id]) ? selectionsByQuestion[q.id] : [];
                     return (
                     <tr key={q.id}>
-                      <td>{q.title || '-'}</td>
-                      <td style={{ whiteSpace: 'pre-wrap' }}>{q.question || '-'}</td>
+                      <td style={{ paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{q.title || '-'}</td>
+                      <td style={{ whiteSpace: 'pre-wrap', paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{q.question || '-'}</td>
                       <td>
                         <ul style={{ paddingLeft: '1rem', margin: 0 }}>
                           {(q.answers || []).map((a) => {

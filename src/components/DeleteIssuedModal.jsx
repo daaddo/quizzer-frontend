@@ -74,25 +74,18 @@ const DeleteIssuedModal = ({ isOpen, issued, loading = false, onConfirm, onCance
 
         <div className="modal-body">
           <div className="delete-warning">
-            <div className="warning-icon-header" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 21h22L12 2 1 21z" fill="#f59e0b"/>
-                <path d="M12 9v6" stroke="#111827" strokeWidth="2" strokeLinecap="round"/>
-                <circle cx="12" cy="17" r="1" fill="#111827"/>
-              </svg>
-            </div>
-            <h3 className="delete-question">Sei sicuro di voler eliminare questo issued?</h3>
+            <h3 className="delete-question" style={{ fontSize: '1.25rem' }}>Sei sicuro di voler eliminare questo Test?</h3>
 
             <div className="quiz-details-center">
-              <div style={{ display: 'grid', gap: '0.25rem' }}>
-                <div><strong>Domande:</strong> {issued?.numberOfQuestions ?? '-'}</div>
-                <div><strong>Emesso il:</strong> {formatDateTime(issued?.issuedAt)}</div>
-                <div><strong>Scade il:</strong> {formatDateTime(issued?.expiresAt)}</div>
-                <div><strong>Durata:</strong> {formatDuration(issued?.duration)}</div>
+              <div style={{ display: 'grid', gap: 0, lineHeight: 1.1 }}>
+                <div style={{ margin: 0, padding: 0 }}><strong>Domande:</strong> {issued?.numberOfQuestions ?? '-'}</div>
+                <div style={{ margin: 0, padding: 0 }}><strong>Emesso il:</strong> {formatDateTime(issued?.issuedAt)}</div>
+                <div style={{ margin: 0, padding: 0 }}><strong>Scade il:</strong> {formatDateTime(issued?.expiresAt)}</div>
+                <div style={{ margin: 0, padding: 0 }}><strong>Durata:</strong> {formatDuration(issued?.duration)}</div>
               </div>
             </div>
 
-            <div className="warning-message">
+            <div className="warning-message" style={{ marginTop: '0.5rem' }}>
               <p><strong>Questa azione non può essere annullata.</strong></p>
               <p>Verranno rimossi anche i tentativi associati a questo issued.</p>
             </div>
