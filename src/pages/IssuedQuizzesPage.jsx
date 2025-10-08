@@ -247,7 +247,7 @@ const IssuedQuizzesPage = () => {
                     <th>Emesso il</th>
                     <th>Scade il</th>
                     <th>Durata</th>
-                    <th>Info obbligatorie</th>
+                    <th style={{ width: '30px', textAlign: 'center', whiteSpace: 'nowrap' }}>Info obbligatorie</th>
                     <th>Azione</th>
                   </tr>
                 </thead>
@@ -265,7 +265,7 @@ const IssuedQuizzesPage = () => {
                         <td>{formatDateTime(it?.issuedAt)}</td>
                         <td>{formatDateTime(it?.expiresAt)}</td>
                         <td>{formatDuration(it?.duration)}</td>
-                        <td>{it?.required_details === true ? 'Sì' : 'No'}</td>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{it?.required_details === true ? 'Sì' : 'No'}</td>
                         <td>
                           <div className="table-actions">
                             <button

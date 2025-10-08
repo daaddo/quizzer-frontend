@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import '../styles/test.css';
@@ -33,57 +32,6 @@ const TakingQuiz = () => {
   const [detailsForm, setDetailsForm] = useState({ user_name: '', surname: '', middleName: '' });
   const [detailsError, setDetailsError] = useState(null);
   const [detailsSubmitting, setDetailsSubmitting] = useState(false);
-  const { username } = useAuth();
-
-  const loadJsPDF = async () => {
-    return new Promise((resolve, reject) => {
-      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
-      const existing = document.getElementById('jspdf-umd');
-      if (existing) {
-        existing.addEventListener('load', () => resolve(window.jspdf.jsPDF));
-        existing.addEventListener('error', () => reject(new Error('Impossibile caricare jsPDF')));
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'jspdf-umd';
-      script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
-      script.async = true;
-      script.onload = () => resolve(window.jspdf.jsPDF);
-      script.onerror = () => reject(new Error('Impossibile caricare jsPDF'));
-      document.head.appendChild(script);
-    });
-  };
-
-  const handleDownloadPdf = async () => {
-    try {
-      const jsPDF = await loadJsPDF();
-      const doc = new jsPDF();
-      const marginLeft = 20;
-      let y = 20;
-
-      doc.setFontSize(16);
-      doc.text('Informazioni quiz', 105, y, { align: 'center' });
-      y += 14;
-      doc.setFontSize(12);
-
-      const name = (detailsForm.user_name || '').trim();
-      const surname = (detailsForm.surname || '').trim();
-      const middle = (detailsForm.middleName || '').trim();
-      const hasAdditional = !!(name || surname || middle);
-
-      if (hasAdditional) {
-        doc.text(`Nome: ${name || '-'}`, marginLeft, y); y += 8;
-        doc.text(`Cognome: ${surname || '-'}`, marginLeft, y); y += 8;
-        doc.text(`Secondo nome: ${middle || '-'}`, marginLeft, y); y += 8;
-      } else {
-        doc.text(`Utente: ${username || '-'}`, marginLeft, y); y += 8;
-      }
-
-      doc.save('informazioni_quiz.pdf');
-    } catch (e) {
-      setDetailsError('Impossibile generare il PDF');
-    }
-  };
 
   // Persistenza timer: snapshot del tempo rimanente con timestamp
   const getRemainingFromSnapshot = (defaultSecs) => {
@@ -577,7 +525,6 @@ const TakingQuiz = () => {
               {detailsError && <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{detailsError}</div>}
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginTop: '0.75rem', flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => navigate('/dashboard')} disabled={detailsSubmitting}>Annulla</button>
-                <button type="button" className="btn btn-secondary" onClick={() => void handleDownloadPdf()} disabled={detailsSubmitting}>Scarica PDF</button>
                 <button type="submit" className="btn btn-primary" disabled={detailsSubmitting}>
                   {detailsSubmitting ? 'Invio...' : 'Continua'}
                 </button>
