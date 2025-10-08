@@ -18,6 +18,7 @@ import IssuedQuizzesPage from './pages/IssuedQuizzesPage'
 import IssuedQuizInfosPage from './pages/IssuedQuizInfosPage'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -91,6 +92,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
       </AuthProvider>

@@ -271,7 +271,7 @@ const IssuedQuizzesPage = () => {
                         <td>
                           <div className="table-actions">
                             <button
-                              className="quiz-action-btn secondary"
+                              className="quiz-action-btn primary"
                               type="button"
                               disabled={!it?.tokenId}
                               onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`, { state: { requiredDetails: !!it?.required_details } })}
@@ -297,13 +297,14 @@ const IssuedQuizzesPage = () => {
                                 <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
                               </svg>
                             </button>
-						<button
+							<button
                               className="quiz-action-btn secondary"
                               type="button"
                               disabled={!it?.tokenId}
                               title="Elimina"
                               aria-label="Elimina issued"
 								onClick={() => it && openDeleteIssuedModal(it)}
+                              style={{ background: '#fee2e2', color: '#991b1b' }}
                             >
 								<img
 									src={cestinoIcon}

@@ -752,6 +752,26 @@
   transform: translateY(-1px);
 }
 
+/* Domande / Quiz creati più intensi nella sezione primaria della card */
+.quiz-actions-primary .quiz-action-btn.primary {
+  background: #8ca1ff;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25);
+}
+.quiz-actions-primary .quiz-action-btn.primary:hover {
+  background: #667eea;
+}
+
+/* Genera quiz (stesso stile di "Quiz creati" quando disponibile) */
+.quiz-actions-secondary .quiz-action-btn.primary {
+  background: #8ca1ff;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25);
+}
+.quiz-actions-secondary .quiz-action-btn.primary:hover {
+  background: #667eea;
+}
+
 .quiz-action-btn.secondary {
   background: #e2e8f0;
   color: #4a5568;
