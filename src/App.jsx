@@ -16,6 +16,8 @@ import { Navigate } from 'react-router-dom'
 import TakingQuiz from './pages/TakingQuiz'
 import IssuedQuizzesPage from './pages/IssuedQuizzesPage'
 import IssuedQuizInfosPage from './pages/IssuedQuizInfosPage'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 function App() {
   return (
@@ -27,6 +29,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<EmailVerification/>} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/* Route richiesta esplicitamente per link email */}
+            <Route path="/api/v1/users/reset-password" element={<ResetPassword />} />
+            {/* Alias comodo in locale (senza /api) */}
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/oauth2/callback" element={<OidcCallback />} />
             <Route 
               path="/dashboard" 

@@ -155,7 +155,10 @@ const Login = () => {
                 </button>
               </div>
 
-              
+              <div className="form-links" style={{ marginTop: '0.5rem', textAlign: 'right' }}>
+                <Link to="/forgot-password">Password dimenticata?</Link>
+              </div>
+
             </form>
 
             

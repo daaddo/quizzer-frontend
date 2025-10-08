@@ -358,6 +358,71 @@ class AuthService {
   }
 
   /**
+   * Avvia la procedura di reset password inviando l'email
+   * @param {string} email - Indirizzo email dell'utente
+   * @returns {Promise<void>} Risolve se la richiesta è andata a buon fine
+   */
+  async forgotPassword(email) {
+    try {
+      if (!email || !email.trim()) {
+        throw new Error('Email richiesta');
+      }
+      const url = `${this.baseUrl}/api/v1/users/forgot-password?email=${encodeURIComponent(email.trim())}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Non rivelare se l'email esiste o meno
+          return;
+        }
+        throw new Error(`Errore richiesta reset: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Errore forgotPassword:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Imposta una nuova password utilizzando il token di reset
+   * @param {string} token - Token di reset ricevuto via email
+   * @param {string} newPassword - Nuova password conforme ai requisiti
+   * @returns {Promise<string>} Messaggio di successo dal backend
+   */
+  async resetPassword(token, newPassword) {
+    try {
+      if (!token || !token.trim()) {
+        throw new Error('Token mancante');
+      }
+      if (!newPassword || !newPassword.trim()) {
+        throw new Error('Nuova password richiesta');
+      }
+      const response = await fetch(`${this.baseUrl}/api/v1/users/set/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token.trim(), newPassword: newPassword })
+      });
+      if (!response.ok) {
+        let details = '';
+        try {
+          details = await response.text();
+        } catch {}
+        throw new Error(details || `Errore reset password: ${response.status}`);
+      }
+      try {
+        const text = await response.text();
+        return text || 'Password reset successfully';
+      } catch {
+        return 'Password reset successfully';
+      }
+    } catch (error) {
+      console.error('Errore resetPassword:', error);
+      throw error;
+    }
+  }
+  /**
    * Verifica se l'utente è attualmente autenticato
    * @returns {boolean} True se autenticato con token valido
    */
