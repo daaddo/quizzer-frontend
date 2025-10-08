@@ -4,6 +4,7 @@ import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import EditIssuedModal from '../components/EditIssuedModal';
 import AttemptResultsModal from '../components/AttemptResultsModal';
+import DeleteAttemptModal from '../components/DeleteAttemptModal';
 import risultatiIcon from '../assets/risultati.png';
 import scaricaIcon from '../assets/scarica.png';
 import cestinoIcon from '../assets/cestino.png';
@@ -19,6 +20,7 @@ const IssuedQuizInfosPage = () => {
   const [editModal, setEditModal] = useState({ isOpen: false, token: null, initialNumber: null, initialExpiration: null });
   const [modalLoading, setModalLoading] = useState(false);
   const [resultsModal, setResultsModal] = useState({ isOpen: false, loading: false, error: null, questions: [], selectionsByQuestion: {}, attempt: null });
+  const [deleteAttemptModal, setDeleteAttemptModal] = useState({ isOpen: false, attempt: null, loading: false });
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -61,16 +63,27 @@ const IssuedQuizInfosPage = () => {
     return null;
   };
 
-  const handleDeleteAttempt = async (userId) => {
+  const openDeleteAttemptModal = (attemptItem) => {
+    if (!attemptItem || !attemptItem.userId) return;
+    setDeleteAttemptModal({ isOpen: true, attempt: attemptItem, loading: false });
+  };
+
+  const handleConfirmDeleteAttempt = async () => {
+    const attemptItem = deleteAttemptModal.attempt;
+    if (!attemptItem || !attemptItem.userId) return;
     try {
-      const ok = window.confirm('Confermi l\'eliminazione del tentativo di questo utente?');
-      if (!ok) return;
-      await userApi.deleteAttempt(tokenId, userId);
-      setItems((prev) => prev.filter((x) => x?.userId !== userId));
-      alert('Tentativo eliminato');
+      setDeleteAttemptModal((prev) => ({ ...prev, loading: true }));
+      await userApi.deleteAttempt(tokenId, attemptItem.userId);
+      setItems((prev) => prev.filter((x) => x?.userId !== attemptItem.userId));
+      setDeleteAttemptModal({ isOpen: false, attempt: null, loading: false });
     } catch (e) {
-      alert(e.message || 'Errore eliminazione tentativo');
+      setDeleteAttemptModal((prev) => ({ ...prev, loading: false }));
     }
+  };
+
+  const handleCancelDeleteAttempt = () => {
+    if (deleteAttemptModal.loading) return;
+    setDeleteAttemptModal({ isOpen: false, attempt: null, loading: false });
   };
 
   const openEditIssued = () => {
@@ -538,7 +551,7 @@ const IssuedQuizInfosPage = () => {
                             className="quiz-action-btn secondary"
                             type="button"
                             disabled={!it?.userId}
-                            onClick={() => it?.userId && handleDeleteAttempt(it.userId)}
+                            onClick={() => it?.userId && openDeleteAttemptModal(it)}
                             title="Elimina tentativo"
                             aria-label="Elimina tentativo"
                             style={{ background: '#fee2e2', color: '#991b1b' }}
@@ -577,6 +590,13 @@ const IssuedQuizInfosPage = () => {
         selectionsByQuestion={resultsModal.selectionsByQuestion}
         attemptInfo={resultsModal.attempt}
         onClose={handleCloseResults}
+      />
+      <DeleteAttemptModal
+        isOpen={deleteAttemptModal.isOpen}
+        attempt={deleteAttemptModal.attempt}
+        loading={deleteAttemptModal.loading}
+        onConfirm={handleConfirmDeleteAttempt}
+        onCancel={handleCancelDeleteAttempt}
       />
     </div>
   );
