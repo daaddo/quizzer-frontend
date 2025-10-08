@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
+import dettagliIcon from '../assets/dettagli.png';
+import cestinoIcon from '../assets/cestino.png';
 import EditIssuedModal from '../components/EditIssuedModal';
 import DeleteIssuedModal from '../components/DeleteIssuedModal';
 
@@ -259,7 +261,7 @@ const IssuedQuizzesPage = () => {
                     return (
                       <tr key={idx} className={isExpired ? 'row-expired' : 'row-active'}>
                         <td>
-                          <span className={`stat-badge ${isExpired ? 'badge-danger' : 'badge-success'}`}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
+                          <span className="stat-badge" style={{ background: isExpired ? '#fee2e2' : '#dcfce7', color: isExpired ? '#991b1b' : '#166534' }}>{isExpired ? 'Scaduto' : 'Attivo'}</span>
                         </td>
                         <td>{it?.numberOfQuestions ?? '-'}</td>
                         <td>{formatDateTime(it?.issuedAt)}</td>
@@ -273,7 +275,15 @@ const IssuedQuizzesPage = () => {
                               type="button"
                               disabled={!it?.tokenId}
                               onClick={() => navigate(`/issued/${encodeURIComponent(it?.tokenId || '')}`, { state: { requiredDetails: !!it?.required_details } })}
-                            >Dettagli</button>
+                              title="Dettagli"
+                              aria-label="Dettagli"
+                            >
+                              <img
+                                src={dettagliIcon}
+                                alt="Dettagli"
+                                style={{ width: 18, height: 18, filter: 'invert(29%) sepia(94%) saturate(2179%) hue-rotate(207deg) brightness(95%) contrast(96%)' }}
+                              />
+                            </button>
                             <button
                               className="quiz-action-btn secondary"
                               type="button"
@@ -287,7 +297,7 @@ const IssuedQuizzesPage = () => {
                                 <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
                               </svg>
                             </button>
-							<button
+						<button
                               className="quiz-action-btn secondary"
                               type="button"
                               disabled={!it?.tokenId}
@@ -295,10 +305,11 @@ const IssuedQuizzesPage = () => {
                               aria-label="Elimina issued"
 								onClick={() => it && openDeleteIssuedModal(it)}
                             >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M9 3h6a1 1 0 0 1 1 1v1h4v2H4V5h4V4a1 1 0 0 1 1-1z" fill="currentColor"/>
-                                <path d="M6 8h12l-1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8z" fill="currentColor"/>
-                              </svg>
+								<img
+									src={cestinoIcon}
+									alt="Elimina"
+									style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }}
+								/>
                             </button>
                           </div>
                         </td>

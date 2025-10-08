@@ -743,12 +743,12 @@
 }
 
 .quiz-action-btn.primary {
-  background: #667eea;
+  background: #b6c3ff;
   color: white;
 }
 
 .quiz-action-btn.primary:hover {
-  background: #5a6fd8;
+  background: #8ca1ff;
   transform: translateY(-1px);
 }
 

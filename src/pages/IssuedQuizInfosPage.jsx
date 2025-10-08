@@ -4,6 +4,9 @@ import { userApi } from '../services/userApi';
 import '../components/dashboard.css';
 import EditIssuedModal from '../components/EditIssuedModal';
 import AttemptResultsModal from '../components/AttemptResultsModal';
+import risultatiIcon from '../assets/risultati.png';
+import scaricaIcon from '../assets/scarica.png';
+import cestinoIcon from '../assets/cestino.png';
 
 const IssuedQuizInfosPage = () => {
   const navigate = useNavigate();
@@ -513,18 +516,39 @@ const IssuedQuizInfosPage = () => {
                             className="quiz-action-btn primary"
                             type="button"
                             onClick={() => handleOpenResults(it)}
-                          >Risultati</button>
+                            title="Risultati"
+                            aria-label="Risultati"
+                          >
+                            <img
+                              src={risultatiIcon}
+                              alt="Risultati"
+                              style={{ width: 18, height: 18, filter: 'invert(29%) sepia(94%) saturate(2179%) hue-rotate(207deg) brightness(95%) contrast(96%)' }}
+                            />
+                          </button>
                           <button
                             className="quiz-action-btn secondary"
                             type="button"
                             onClick={() => handleDownloadAttemptPdf(it)}
-                          >Scarica PDF</button>
+                            title="Scarica PDF"
+                            aria-label="Scarica PDF"
+                          >
+                            <img src={scaricaIcon} alt="Scarica PDF" style={{ width: 18, height: 18 }} />
+                          </button>
                           <button
                             className="quiz-action-btn secondary"
                             type="button"
                             disabled={!it?.userId}
                             onClick={() => it?.userId && handleDeleteAttempt(it.userId)}
-                          >Elimina tentativo</button>
+                            title="Elimina tentativo"
+                            aria-label="Elimina tentativo"
+                            style={{ background: '#fee2e2', color: '#991b1b' }}
+                          >
+                            <img
+                              src={cestinoIcon}
+                              alt="Elimina"
+                              style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }}
+                            />
+                          </button>
                          </div>
                        </td>
                     </tr>
