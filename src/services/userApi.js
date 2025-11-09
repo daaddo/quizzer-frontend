@@ -666,7 +666,7 @@ class UserApiService {
    * @param {boolean} [params.requiredDetails=false] - Se richiedere informazioni aggiuntive
    * @returns {Promise<{ token: string, link: string }>} Token e link completo
    */
-  async generateLink({ quizId, numberOfQuestions, duration, expirationDate, requiredDetails }) {
+  async generateLink({ quizId, numberOfQuestions, duration, expirationDate, requiredDetails, requiredQuestions }) {
     try {
       // Normalizza durata: consenti HH:mm e converti in HH:mm:ss
       let normalizedDuration = duration || null;
@@ -680,12 +680,32 @@ class UserApiService {
         normalizedExpiration = `${normalizedExpiration}:00`;
       }
 
+      // Normalizza e valida requiredQuestions
+      let normalizedRequired = [];
+      if (Array.isArray(requiredQuestions)) {
+        normalizedRequired = requiredQuestions
+          .map((q) => Number(q))
+          .filter((q) => Number.isInteger(q) && q > 0);
+        // de-duplica mantenendo l'ordine
+        const seen = new Set();
+        normalizedRequired = normalizedRequired.filter((q) => {
+          if (seen.has(q)) return false;
+          seen.add(q);
+          return true;
+        });
+      }
+
+      if (numberOfQuestions != null && normalizedRequired.length > Number(numberOfQuestions)) {
+        throw new Error('Il numero di domande necessarie non può superare il numero totale di domande');
+      }
+
       const body = {
         quizId,
         numberOfQuestions,
         duration: normalizedDuration,
         expirationDate: normalizedExpiration,
-        requiredDetails: Boolean(requiredDetails)
+        requiredDetails: Boolean(requiredDetails),
+        requiredQuestions: normalizedRequired
       };
 
       const response = await fetch(`${this.baseUrl}/api/v1/quizzes/link`, {

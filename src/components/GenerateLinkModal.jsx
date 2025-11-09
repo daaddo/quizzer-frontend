@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import cestinoIcon from '../assets/cestino.png';
 import { useNavigate } from 'react-router-dom';
+import { userApi } from '../services/userApi';
 
 /**
  * Modal per generare un link con token per un quiz
@@ -11,6 +12,11 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
   const [duration, setDuration] = useState('00:30'); // HH:mm
   const [expirationDate, setExpirationDate] = useState(''); // datetime-local
   const [requiredDetails, setRequiredDetails] = useState(false);
+  const [enableRequired, setEnableRequired] = useState(false);
+  const [availableQuestions, setAvailableQuestions] = useState([]);
+  const [requiredQuestions, setRequiredQuestions] = useState([]);
+  const [rqLoading, setRqLoading] = useState(false);
+  const [rqError, setRqError] = useState(null);
   const [error, setError] = useState(null);
 
   const maxQuestions = useMemo(() => (quiz?.questionCount ? quiz.questionCount : 0), [quiz]);
@@ -28,6 +34,11 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       setDuration('00:30');
       setExpirationDate('');
       setRequiredDetails(false);
+      setEnableRequired(false);
+      setAvailableQuestions([]);
+      setRequiredQuestions([]);
+      setRqLoading(false);
+      setRqError(null);
       setError(null);
 
       return () => {
@@ -39,6 +50,25 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       };
     }
   }, [isOpen, quiz]);
+
+  // Carica domande del quiz quando si abilita "Domande necessarie"
+  useEffect(() => {
+    const loadQuestions = async () => {
+      if (!enableRequired || !quiz?.id) return;
+      if (availableQuestions.length > 0) return;
+      try {
+        setRqLoading(true);
+        setRqError(null);
+        const questions = await userApi.getQuizQuestions(quiz.id);
+        setAvailableQuestions(Array.isArray(questions) ? questions : []);
+      } catch (e) {
+        setRqError(e?.message || 'Errore nel caricamento delle domande');
+      } finally {
+        setRqLoading(false);
+      }
+    };
+    loadQuestions();
+  }, [enableRequired, quiz, availableQuestions.length]);
 
   const validate = () => {
     if (!quiz) return false;
@@ -74,6 +104,11 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       }
     }
 
+    // Validazione required questions
+    if (enableRequired && requiredQuestions.length > numberOfQuestions) {
+      errs.push('Il numero di domande necessarie non può superare il numero totale di domande');
+    }
+
     setError(errs.length ? errs.join('\n') : null);
     return errs.length === 0;
   };
@@ -85,7 +120,26 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       numberOfQuestions,
       duration, // HH:mm (verrà normalizzato a HH:mm:ss nel client API)
       expirationDate: expirationDate || null,
-      requiredDetails
+      requiredDetails,
+      requiredQuestions: enableRequired ? requiredQuestions : []
+    });
+  };
+
+  const toggleRequiredQuestion = (questionId) => {
+    if (!questionId) return;
+    setError(null);
+    setRequiredQuestions((prev) => {
+      const exists = prev.includes(questionId);
+      if (exists) {
+        return prev.filter((id) => id !== questionId);
+      } else {
+        if (prev.length >= (Number(numberOfQuestions) || 0)) {
+          // Non permettere di superare il limite
+          setError('Non puoi selezionare più domande necessarie del numero totale di domande');
+          return prev;
+        }
+        return [...prev, questionId];
+      }
     });
   };
 
@@ -112,79 +166,168 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
             </div>
           </div>
 
-          <form onSubmit={(e) => e.preventDefault()}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="gl-qn">Numero di domande *</label>
-              <input
-                id="gl-qn"
-                type="number"
-                className={`form-input ${error && numberOfQuestions > maxQuestions ? 'error' : ''}`}
-                value={numberOfQuestions}
-                min="1"
-                max={maxQuestions || undefined}
-                onChange={(e) => setNumberOfQuestions(parseInt(e.target.value) || 0)}
-                disabled={disabled}
-              />
-              <div className="form-hint">Min 1, Max {maxQuestions || 0}</div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1 }}>
+              <form onSubmit={(e) => e.preventDefault()}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="gl-qn">Numero di domande *</label>
+                  <input
+                    id="gl-qn"
+                    type="number"
+                    className={`form-input ${error && numberOfQuestions > maxQuestions ? 'error' : ''}`}
+                    value={numberOfQuestions}
+                    min="1"
+                    max={maxQuestions || undefined}
+                    onChange={(e) => setNumberOfQuestions(parseInt(e.target.value) || 0)}
+                    disabled={disabled}
+                  />
+                  <div className="form-hint">Min 1, Max {maxQuestions || 0}</div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="gl-du">Durata (HH:mm) *</label>
+                  <input
+                    id="gl-du"
+                    type="time"
+                    className="form-input"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    disabled={disabled}
+                  />
+                  <div className="form-hint">Formato 24h (es. 00:30)</div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="gl-ex">Scadenza (opzionale)</label>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      id="gl-ex"
+                      type="datetime-local"
+                      className="form-input"
+                      value={expirationDate}
+                      onChange={(e) => setExpirationDate(e.target.value)}
+                      disabled={disabled}
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setExpirationDate('')}
+                      disabled={disabled}
+                      title="Resetta scadenza"
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    >
+                      <img src={cestinoIcon} alt="Resetta scadenza" style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }} />
+                    </button>
+                  </div>
+                  <div className="form-hint">Se vuoto, nessuna scadenza</div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="gl-rd">Informazioni aggiuntive Obbligatorie</label>
+                  <div className="form-checkbox-row">
+                    <input
+                      id="gl-rd"
+                      type="checkbox"
+                      className="form-checkbox"
+                      checked={requiredDetails}
+                      onChange={(e) => setRequiredDetails(e.target.checked)}
+                      disabled={disabled}
+                    />
+                    <span style={{ marginLeft: '0.5rem' }}>Richiedi informazioni aggiuntive prima di iniziare</span>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="gl-rq-enable">Domande necessarie</label>
+                  <div className="form-checkbox-row">
+                    <input
+                      id="gl-rq-enable"
+                      type="checkbox"
+                      className="form-checkbox"
+                      checked={enableRequired}
+                      onChange={(e) => setEnableRequired(e.target.checked)}
+                      disabled={disabled || (quiz?.questionCount || 0) < 1}
+                    />
+                    <span style={{ marginLeft: '0.5rem' }}>Seleziona domande che devono sempre comparire nel quiz</span>
+                  </div>
+                  {enableRequired && (
+                    <div className="form-hint">
+                      Selezionate: {requiredQuestions.length} / {numberOfQuestions}
+                    </div>
+                  )}
+                </div>
+
+                {error && (
+                  <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{error}</div>
+                )}
+              </form>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="gl-du">Durata (HH:mm) *</label>
-              <input
-                id="gl-du"
-                type="time"
-                className="form-input"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                disabled={disabled}
-              />
-              <div className="form-hint">Formato 24h (es. 00:30)</div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="gl-ex">Scadenza (opzionale)</label>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input
-                  id="gl-ex"
-                  type="datetime-local"
-                  className="form-input"
-                  value={expirationDate}
-                  onChange={(e) => setExpirationDate(e.target.value)}
-                  disabled={disabled}
-                  style={{ flex: 1 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setExpirationDate('')}
-                  disabled={disabled}
-                  title="Resetta scadenza"
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-                >
-                  <img src={cestinoIcon} alt="Resetta scadenza" style={{ width: 18, height: 18, filter: 'invert(14%) sepia(79%) saturate(3075%) hue-rotate(350deg) brightness(89%) contrast(100%)' }} />
-                </button>
-              </div>
-              <div className="form-hint">Se vuoto, nessuna scadenza</div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="gl-rd">Informazioni aggiuntive Obbligatorie</label>
-              <div className="form-checkbox-row">
-                <input
-                  id="gl-rd"
-                  type="checkbox"
-                  className="form-checkbox"
-                  checked={requiredDetails}
-                  onChange={(e) => setRequiredDetails(e.target.checked)}
-                  disabled={disabled}
-                />
-                <span style={{ marginLeft: '0.5rem' }}>Richiedi informazioni aggiuntive prima di iniziare</span>
-              </div>
-            </div>
-
-            {error && (
-              <div className="form-error" style={{ whiteSpace: 'pre-line' }}>{error}</div>
+            {enableRequired && (
+              <aside
+                className="required-questions-panel"
+                style={{
+                  width: '40%',
+                  minWidth: 280,
+                  maxWidth: 420,
+                  borderLeft: '1px solid #eceff4',
+                  paddingLeft: '1rem'
+                }}
+              >
+                <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Domande necessarie</h3>
+                {rqLoading && <div>Caricamento domande...</div>}
+                {rqError && <div className="form-error">{rqError}</div>}
+                {!rqLoading && !rqError && (
+                  <>
+                    {availableQuestions.length === 0 ? (
+                      <div>Nessuna domanda disponibile per questo quiz.</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 360, overflowY: 'auto' }}>
+                        {availableQuestions.map((q) => {
+                          const checked = requiredQuestions.includes(q.id);
+                          const disableAdd = !checked && requiredQuestions.length >= (Number(numberOfQuestions) || 0);
+                          return (
+                            <label
+                              key={q.id}
+                              htmlFor={`rq-${q.id}`}
+                              style={{
+                                display: 'block',
+                                border: '1px solid #eceff4',
+                                borderRadius: 6,
+                                padding: '0.5rem 0.75rem',
+                                background: checked ? '#f7fafc' : '#fff',
+                                opacity: disableAdd ? 0.6 : 1,
+                                cursor: disableAdd ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                <input
+                                  id={`rq-${q.id}`}
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => !disableAdd ? toggleRequiredQuestion(q.id) : null}
+                                  disabled={disableAdd && !checked}
+                                  style={{ marginTop: 2 }}
+                                />
+                                <div>
+                                  <div style={{ fontWeight: 600 }}>{q.title || `Domanda #${q.id}`}</div>
+                                  {q.question && (
+                                    <div style={{ color: '#4b5563', fontSize: '0.9rem' }}>
+                                      {q.question}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </aside>
             )}
-          </form>
+          </div>
 
           {result && (
             <div className="quiz-details-center" style={{ marginTop: '1rem' }}>
