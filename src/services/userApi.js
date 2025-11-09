@@ -1,4 +1,5 @@
 import { getStoredToken } from '../utils/jwt.js';
+import { getCsrfHeaders } from './csrf.js';
 
 // API configuration
 const getApiBaseUrl = () => {
@@ -16,6 +17,7 @@ const getAuthHeaders = () => {
   const token = getStoredToken();
   const headers = {
     'Content-Type': 'application/json',
+    ...getCsrfHeaders(),
   };
   
   if (token) {

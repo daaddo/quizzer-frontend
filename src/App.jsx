@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
@@ -19,8 +19,15 @@ import IssuedQuizInfosPage from './pages/IssuedQuizInfosPage'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import CookiePolicy from './pages/CookiePolicy'
+import { initCsrf } from './services/csrf.js'
 
 function App() {
+  useEffect(() => {
+    // Inizializza il cookie XSRF all'avvio del sito
+    initCsrf(true);
+  }, []);
   return (
     <Router>
       <AuthProvider>
@@ -93,6 +100,8 @@ function App() {
               } 
             />
             <Route path="*" element={<NotFound />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
           </Routes>
         </Layout>
       </AuthProvider>

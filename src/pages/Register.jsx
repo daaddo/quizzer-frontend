@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import logo from '../assets/logo.png'
+import FloatingLabelInput from '../components/FloatingLabelInput'
 /**
  * Pagina di registrazione utente
  */
@@ -15,6 +16,8 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
 
   // Regex per validazione password
@@ -164,75 +167,107 @@ const Register = () => {
             {/* Row 1: Username (full width) + Email (full width) */}
             <div className="register-grid" style={{ rowGap: '1.25rem' }}>
               <div className="form-group col-span-2" style={{ marginBottom: 0 }}>
-                <input
+                <FloatingLabelInput
                   id="username"
                   name="username"
                   type="text"
                   value={formData.username}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.username ? 'error' : ''}`}
                   placeholder="Username"
+                  label="Username"
                   disabled={loading}
                   maxLength={20}
                   autoComplete="username"
+                  error={errors.username}
                 />
-                {errors.username && (
-                  <div className="form-error">{errors.username}</div>
-                )}
               </div>
-              <div className="form-group col-span-2" style={{ marginBottom: '0.5rem' }}>
-                <input
+              <div className="form-group col-span-2" style={{ marginBottom: '1.75rem' }}>
+                <FloatingLabelInput
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.email ? 'error' : ''}`}
                   placeholder="Email"
+                  label="Email"
                   disabled={loading}
                   autoComplete="email"
+                  error={errors.email}
                 />
-                {errors.email && (
-                  <div className="form-error">{errors.email}</div>
-                )}
               </div>
             </div>
 
             {/* Row 2: Password + Conferma Password */}
             <div className="register-grid">
-              <div className="form-group">
-                <label htmlFor="password" className="form-label">Password *</label>
-                <input
+              <div className="form-group col-span-2">
+                <FloatingLabelInput
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.password ? 'error' : ''}`}
-                  placeholder="Inserisci la password"
+                  placeholder="Password"
+                  label="Password *"
                   disabled={loading}
                   autoComplete="new-password"
+                  error={errors.password}
+                  endButton={
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(p => !p)}
+                      aria-label={showPassword ? 'Nascondi password' : 'Mostra password'}
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M12 5C7 5 3.1 8.1 1.5 12c.6 1.4 1.6 2.8 2.8 3.9M20.7 16c1-1.1 1.8-2.3 2.3-4-1.6-3.9-5.6-7-11-7-1.2 0-2.4.2-3.5.5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M12 5C6.5 5 2 9 1 12c1 3 5.5 7 11 7s10-4 11-7c-1-3-5.5-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        </svg>
+                      )}
+                    </button>
+                  }
                 />
-                {errors.password && (
-                  <div className="form-error">{errors.password}</div>
-                )}
               </div>
-              <div className="form-group">
-                <label htmlFor="confirmPassword" className="form-label">Conferma Password *</label>
-                <input
+              <div className="form-group col-span-2">
+                <FloatingLabelInput
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                  placeholder="Ripeti la password"
+                  placeholder="Conferma Password"
+                  label="Conferma Password *"
                   disabled={loading}
                   autoComplete="new-password"
+                  error={errors.confirmPassword}
+                  endButton={
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(p => !p)}
+                      aria-label={showConfirmPassword ? 'Nascondi password' : 'Mostra password'}
+                    >
+                      {showConfirmPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M12 5C7 5 3.1 8.1 1.5 12c.6 1.4 1.6 2.8 2.8 3.9M20.7 16c1-1.1 1.8-2.3 2.3-4-1.6-3.9-5.6-7-11-7-1.2 0-2.4.2-3.5.5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M12 5C6.5 5 2 9 1 12c1 3 5.5 7 11 7s10-4 11-7c-1-3-5.5-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        </svg>
+                      )}
+                    </button>
+                  }
                 />
-                {errors.confirmPassword && (
-                  <div className="form-error">{errors.confirmPassword}</div>
-                )}
               </div>
             </div>
 
@@ -244,7 +279,7 @@ const Register = () => {
             {/* Submit */}
             <button 
               type="submit" 
-              className="btn btn-primary btn-auth btn-auth-wide"
+              className="btn-auth-wide btn btn-primary btn-auth "
               disabled={loading}
             >
               {loading ? (

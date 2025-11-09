@@ -15,8 +15,7 @@ const Layout = ({ children }) => {
     };
 
     // ping immediato
-    ping();
-    // ogni 10 minuti
+    ping();    // ogni 10 minuti
     const intervalId = setInterval(ping, 10 * 60 * 1000);
 
     return () => {

@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import logo from '../assets/logo.png'
+import { initCsrf } from '../services/csrf.js'
 
 
 const Header = () => {
@@ -13,6 +14,15 @@ const Header = () => {
       await logout();
     } catch (error) {
       console.error('Errore logout:', error);
+    }
+  };
+
+  const handleInitCsrf = async () => {
+    try {
+      const res = await initCsrf(true);
+      console.log('CSRF inizializzato:', res);
+    } catch (error) {
+      console.error('Errore inizializzazione CSRF:', error);
     }
   };
 
@@ -36,6 +46,13 @@ const Header = () => {
             </ul>
 
             <div className="nav-auth">
+              <button
+                onClick={handleInitCsrf}
+                className="btn btn-small"
+                title="Inizializza CSRF"
+              >
+                CSRF
+              </button>
               {isLoading ? (
                 <div className="auth-loading-indicator">
                   <span className="loading-dot">⏳</span>

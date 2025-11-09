@@ -14,6 +14,7 @@ const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
+import { getCsrfHeaders, clearCsrf } from './csrf.js';
 import { 
   decodeJWT, 
   isTokenExpired, 
@@ -38,7 +39,7 @@ class AuthService {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/users/status`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
         credentials: 'include'
       });
       if (response.status === 200) return true;
@@ -62,7 +63,9 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getCsrfHeaders(),
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: credentials.username, // Può essere username o email
           password: credentials.password
@@ -132,11 +135,13 @@ class AuthService {
    */
   async checkAuthStatus() {
     try {
+      console.log('Verifica stato autenticazione');
       const token = getStoredToken();
-      
+      console.log('Token:', token);
       // 1) JWT path
       if (token) {
         if (isTokenExpired(token)) {
+          console.log('Token scaduto');
           // Token scaduto, rimuovilo
           removeToken();
           return {
@@ -145,7 +150,7 @@ class AuthService {
             message: 'Token di autenticazione scaduto'
           };
         }
-        
+        console.log('Token valido');
         // Token valido, estrai i dati utente
         const userData = getUserFromToken(token);
         if (!userData) {
@@ -165,24 +170,28 @@ class AuthService {
           message: 'Autenticato tramite JWT'
         };
       }
+      console.log('Token non valido');
 
       // 2) Session path (no token): prima controlla lo status della sessione
       const sessionOk = await this.checkServerSessionStatus();
       if (!sessionOk) {
+        console.log('Sessione non valida');
         return {
           authenticated: false,
           user: null
         };
       }
-
+  console.log('Sessione valida');
       // Se la sessione è valida, recupera i dati utente
       try {
+        console.log('Recupero utente sessione');
         const response = await fetch(`${this.baseUrl}/api/v1/users`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
           credentials: 'include'
         });
         if (response.ok) {
+          console.log('Sessione valida');
           const data = await response.json();
           return {
             authenticated: true,
@@ -230,7 +239,7 @@ class AuthService {
     const token = getStoredToken();
     try {
       // Effettua sempre il tentativo di logout server-side
-      const headers = { 'Content-Type': 'application/json' };
+      const headers = { 'Content-Type': 'application/json', ...getCsrfHeaders() };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -247,6 +256,7 @@ class AuthService {
     } finally {
       // Pulisci sempre il token lato client
       removeToken();
+      clearCsrf();
     }
     return { success: true };
   }
@@ -289,7 +299,9 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getCsrfHeaders(),
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: userData.username,
           email: userData.email,
@@ -335,6 +347,7 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getCsrfHeaders(),
         }
       });
 
@@ -370,7 +383,8 @@ class AuthService {
       const url = `${this.baseUrl}/api/v1/users/forgot-password?email=${encodeURIComponent(email.trim())}`;
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
+        credentials: 'include',
       });
       if (!response.ok) {
         if (response.status === 404) {
@@ -401,7 +415,8 @@ class AuthService {
       }
       const response = await fetch(`${this.baseUrl}/api/v1/users/set/reset-password`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
+        credentials: 'include',
         body: JSON.stringify({ token: token.trim(), newPassword: newPassword })
       });
       if (!response.ok) {

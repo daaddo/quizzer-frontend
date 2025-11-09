@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { authService } from '../services/auth'
+import FloatingLabelInput from '../components/FloatingLabelInput'
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('')
@@ -34,21 +35,23 @@ const ForgotPassword = () => {
             {error && <div className="form-error" style={{ marginBottom: '0.75rem' }}>{error}</div>}
             {message && <div className="form-success" style={{ marginBottom: '0.75rem' }}>{message}</div>}
             <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-              <input
+              <FloatingLabelInput
                 type="email"
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="form-input"
+                label="Email"
+                className=""
                 disabled={isSubmitting}
                 autoComplete="email"
                 autoFocus
               />
-            </div>
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting || !email.trim()}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || !email.trim()}>
               {isSubmitting ? 'Invio in corso…' : 'Invia link di reset'}
             </button>
+            </div>
+            
           </form>
         </div>
       </div>
