@@ -17,9 +17,11 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
   const [requiredQuestions, setRequiredQuestions] = useState([]);
   const [rqLoading, setRqLoading] = useState(false);
   const [rqError, setRqError] = useState(null);
+  const [requiredSearch, setRequiredSearch] = useState('');
   const [error, setError] = useState(null);
 
   const maxQuestions = useMemo(() => (quiz?.questionCount ? quiz.questionCount : 0), [quiz]);
+  const minQuestions = useMemo(() => Math.max(1, enableRequired ? (requiredQuestions.length || 0) : 1), [enableRequired, requiredQuestions.length]);
 
   // Blocca scrolling quando aperto e resetta form
   useEffect(() => {
@@ -39,6 +41,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
       setRequiredQuestions([]);
       setRqLoading(false);
       setRqError(null);
+      setRequiredSearch('');
       setError(null);
 
       return () => {
@@ -69,6 +72,16 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
     };
     loadQuestions();
   }, [enableRequired, quiz, availableQuestions.length]);
+
+  const filteredRequiredList = useMemo(() => {
+    const term = (requiredSearch || '').trim().toLowerCase();
+    if (!term) return availableQuestions;
+    return (availableQuestions || []).filter((q) => {
+      const t = (q?.title || '').toLowerCase();
+      const body = (q?.question || '').toLowerCase();
+      return t.includes(term) || body.includes(term);
+    });
+  }, [availableQuestions, requiredSearch]);
 
   const validate = () => {
     if (!quiz) return false;
@@ -149,7 +162,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
 
   return (
     <div className="modal-overlay generate-link-modal" onClick={onCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal-content${enableRequired ? ' modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">Genera link per quiz</h2>
           <button onClick={onCancel} className="modal-close-btn" disabled={loading} title="Chiudi">✕</button>
@@ -167,7 +180,7 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: enableRequired ? '0 0 50%' : '1 1 auto' }}>
               <form onSubmit={(e) => e.preventDefault()}>
                 <div className="form-group">
                   <label className="form-label" htmlFor="gl-qn">Numero di domande *</label>
@@ -176,12 +189,16 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
                     type="number"
                     className={`form-input ${error && numberOfQuestions > maxQuestions ? 'error' : ''}`}
                     value={numberOfQuestions}
-                    min="1"
+                    min={minQuestions}
                     max={maxQuestions || undefined}
-                    onChange={(e) => setNumberOfQuestions(parseInt(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0;
+                      const clamped = Math.min(Math.max(val, minQuestions), maxQuestions || Number.MAX_SAFE_INTEGER);
+                      setNumberOfQuestions(clamped);
+                    }}
                     disabled={disabled}
                   />
-                  <div className="form-hint">Min 1, Max {maxQuestions || 0}</div>
+                  <div className="form-hint">Min {minQuestions}, Max {maxQuestions || 0}</div>
                 </div>
 
                 <div className="form-group">
@@ -267,23 +284,50 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
               <aside
                 className="required-questions-panel"
                 style={{
-                  width: '40%',
-                  minWidth: 280,
-                  maxWidth: 420,
+                  width: '50%',
+                  minWidth: 480,
                   borderLeft: '1px solid #eceff4',
                   paddingLeft: '1rem'
                 }}
               >
                 <h3 style={{ marginTop: 0, marginBottom: '0.5rem' }}>Domande necessarie</h3>
+                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Cerca per titolo o testo..."
+                    value={requiredSearch}
+                    onChange={(e) => setRequiredSearch(e.target.value)}
+                    disabled={rqLoading}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={rqLoading || (availableQuestions.length === 0) || (requiredQuestions.length >= availableQuestions.length)}
+                    onClick={() => {
+                      if (rqLoading || availableQuestions.length === 0) return;
+                      const allIds = availableQuestions.map((q) => q.id);
+                      setRequiredQuestions(allIds);
+                      const target = Math.min(allIds.length, maxQuestions || allIds.length);
+                      setNumberOfQuestions(target);
+                      setError(null);
+                    }}
+                    title="Seleziona tutte le domande come necessarie"
+                  >
+                    Seleziona tutte
+                  </button>
+                </div>
                 {rqLoading && <div>Caricamento domande...</div>}
                 {rqError && <div className="form-error">{rqError}</div>}
                 {!rqLoading && !rqError && (
                   <>
-                    {availableQuestions.length === 0 ? (
+                    {filteredRequiredList.length === 0 ? (
                       <div>Nessuna domanda disponibile per questo quiz.</div>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 360, overflowY: 'auto' }}>
-                        {availableQuestions.map((q) => {
+                        {filteredRequiredList.map((q) => {
                           const checked = requiredQuestions.includes(q.id);
                           const disableAdd = !checked && requiredQuestions.length >= (Number(numberOfQuestions) || 0);
                           return (

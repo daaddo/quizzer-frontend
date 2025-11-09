@@ -2506,6 +2506,9 @@ body {
   overflow-y: auto;
   max-height: calc(95vh - 140px);
 }
+.generate-link-modal .modal-content.modal-wide {
+  max-width: 1200px;
+}
 .generate-link-modal .modal-footer {
   flex-shrink: 0;
 }
