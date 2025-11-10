@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react';
 const EditQuizModal = ({ quiz, isOpen, onSave, onCancel, loading = false }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
+  const [originalIsPublic, setOriginalIsPublic] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Blocca lo scorrimento del body quando il modal è aperto
@@ -32,6 +34,9 @@ const EditQuizModal = ({ quiz, isOpen, onSave, onCancel, loading = false }) => {
     if (isOpen && quiz) {
       setTitle(quiz.title || '');
       setDescription(quiz.description || '');
+      const publicState = quiz.isPublic || false;
+      setIsPublic(publicState);
+      setOriginalIsPublic(publicState);
       setErrors({});
     }
   }, [isOpen, quiz]);
@@ -63,7 +68,8 @@ const EditQuizModal = ({ quiz, isOpen, onSave, onCancel, loading = false }) => {
     const updatedQuiz = {
       id: quiz.id,
       title: title.trim(),
-      description: description.trim() || null
+      description: description.trim() || null,
+      isPublic: isPublic
     };
 
     onSave(updatedQuiz);
@@ -146,6 +152,45 @@ const EditQuizModal = ({ quiz, isOpen, onSave, onCancel, loading = false }) => {
               )}
               <div className="form-hint">
                 {description.length}/1199 caratteri
+              </div>
+            </div>
+
+            {/* Campo Quiz Pubblico */}
+            <div className="form-group">
+              <div className="checkbox-group">
+                <label htmlFor="quiz-is-public" className="checkbox-label">
+                  <input
+                    id="quiz-is-public"
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    disabled={loading}
+                    className="checkbox-input"
+                  />
+                  <span className="checkbox-text">
+                    Rendi questo quiz pubblico
+                  </span>
+                </label>
+                <div className="form-hint">
+                  {isPublic 
+                    ? 'Il quiz sarà visibile nella sezione Quiz Pubblici' 
+                    : 'Il quiz rimarrà privato e visibile solo a te'}
+                </div>
+                
+                {/* Avviso quando si modifica lo stato pubblico */}
+                {isPublic !== originalIsPublic && (
+                  <div className={`form-warning ${isPublic ? 'warning-online' : 'warning-offline'}`}>
+                    {isPublic ? (
+                      <>
+                        <strong>Attenzione:</strong> Rendendo questo quiz pubblico, tutti gli utenti potranno accedervi e completarlo dalla sezione Quiz Pubblici.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Attenzione:</strong> Rendendo questo quiz privato, tutte le informazioni pubbliche (stelle, recensioni, commenti) saranno cancellate definitivamente e il quiz non sarà più visibile nella sezione Quiz Pubblici.
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </form>

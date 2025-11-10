@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [errors, setErrors] = useState({});
 
   // Blocca lo scorrimento del body quando il modal è aperto
@@ -32,6 +33,7 @@ const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
     if (isOpen) {
       setTitle('');
       setDescription('');
+      setIsPublic(false);
       setErrors({});
     }
   }, [isOpen]);
@@ -62,7 +64,8 @@ const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
 
     const newQuiz = {
       title: title.trim(),
-      description: description.trim() || null
+      description: description.trim() || null,
+      isPublic: isPublic
     };
 
     onSave(newQuiz);
@@ -146,6 +149,30 @@ const CreateQuizModal = ({ isOpen, onSave, onCancel, loading = false }) => {
               )}
               <div className="form-hint">
                 {description.length}/1199 caratteri
+              </div>
+            </div>
+
+            {/* Campo Quiz Pubblico */}
+            <div className="form-group">
+              <div className="checkbox-group">
+                <label htmlFor="new-quiz-is-public" className="checkbox-label">
+                  <input
+                    id="new-quiz-is-public"
+                    type="checkbox"
+                    checked={isPublic}
+                    onChange={(e) => setIsPublic(e.target.checked)}
+                    disabled={loading}
+                    className="checkbox-input"
+                  />
+                  <span className="checkbox-text">
+                    Rendi questo quiz pubblico
+                  </span>
+                </label>
+                <div className="form-hint">
+                  {isPublic 
+                    ? 'Il quiz sarà visibile nella sezione Quiz Pubblici' 
+                    : 'Il quiz rimarrà privato e visibile solo a te'}
+                </div>
               </div>
             </div>
           </form>

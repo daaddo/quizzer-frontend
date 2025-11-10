@@ -40,6 +40,7 @@ const Header = () => {
           <div className="nav-content">
             <ul className="nav-links">
               <li><Link to="/">Home</Link></li>
+              <li><Link to="/public-quizzes">Quiz Pubblici</Link></li>
               {isAuthenticated && (
                 <li><Link to="/dashboard">Dashboard</Link></li>
               )}

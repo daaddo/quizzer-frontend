@@ -21,6 +21,7 @@ import ResetPassword from './pages/ResetPassword'
 import NotFound from './pages/NotFound'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import CookiePolicy from './pages/CookiePolicy'
+import PublicQuizzes from './pages/PublicQuizzes'
 import { initCsrf } from './services/csrf.js'
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
             {/* Alias comodo in locale (senza /api) */}
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/oauth2/callback" element={<OidcCallback />} />
+            <Route path="/public-quizzes" element={<PublicQuizzes />} />
             <Route 
               path="/dashboard" 
               element={

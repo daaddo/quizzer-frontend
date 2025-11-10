@@ -63,6 +63,11 @@ const QuizCard = ({ quiz, onQuizClick, onEditQuiz, onDeleteQuiz, onStartTest, on
       </button>
       <div className="quiz-card-header">
         <h3 className="quiz-title">{quiz.title || 'Quiz Senza Nome'}</h3>
+        {quiz.isPublic && (
+          <span className="quiz-badge public" title="Quiz pubblico">
+            🌐 Pubblico
+          </span>
+        )}
       </div>
       
       <div className="quiz-card-body">
