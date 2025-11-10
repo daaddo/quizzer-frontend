@@ -318,6 +318,20 @@ const GenerateLinkModal = ({ quiz, isOpen, onGenerate, onCancel, loading = false
                   >
                     Seleziona tutte
                   </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={rqLoading || requiredQuestions.length === 0}
+                    onClick={() => {
+                      if (rqLoading || requiredQuestions.length === 0) return;
+                      setRequiredQuestions([]);
+                      setNumberOfQuestions((prev) => Math.max(prev || 0, 1));
+                      setError(null);
+                    }}
+                    title="Rimuovi tutte le domande necessarie selezionate"
+                  >
+                    Deseleziona tutte
+                  </button>
                 </div>
                 {rqLoading && <div>Caricamento domande...</div>}
                 {rqError && <div className="form-error">{rqError}</div>}
