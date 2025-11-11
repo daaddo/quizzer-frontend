@@ -52,6 +52,12 @@ const PublicQuizCard = ({ quiz, onStartQuiz, onOpenComments }) => {
       <div className="public-quiz-card-header">
         <h3 className="public-quiz-title">{quiz.title || 'Quiz Senza Nome'}</h3>
         {quiz.name && <p className="public-quiz-name">{quiz.name}</p>}
+        {quiz.author && (
+          <p className="public-quiz-author">
+            <span className="author-icon">👤</span>
+            Creato da: <strong>{quiz.author}</strong>
+          </p>
+        )}
       </div>
       
       <div className="public-quiz-card-body">

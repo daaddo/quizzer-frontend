@@ -226,8 +226,8 @@ class UserApiService {
   }
 
   /**
-   * Aggiorna un quiz esistente (titolo e descrizione)
-   * @param {Object} quizData - Dati del quiz { id, title, description }
+   * Aggiorna un quiz esistente (titolo, descrizione e stato pubblico)
+   * @param {Object} quizData - Dati del quiz { id, title, description, isPublic }
    * @returns {Promise<Object>} Quiz aggiornato
    */
   async updateQuiz(quizData) {
@@ -241,7 +241,8 @@ class UserApiService {
         body: JSON.stringify({
           id: quizData.id,
           title: quizData.title,
-          description: quizData.description
+          description: quizData.description,
+          isPublic: quizData.isPublic
         })
       });
 
@@ -277,7 +278,8 @@ class UserApiService {
           updatedQuiz = {
             id: quizData.id,
             title: quizData.title,
-            description: quizData.description
+            description: quizData.description,
+            isPublic: quizData.isPublic
           };
         }
       } else {
@@ -286,7 +288,8 @@ class UserApiService {
         updatedQuiz = {
           id: quizData.id,
           title: quizData.title,
-          description: quizData.description
+          description: quizData.description,
+          isPublic: quizData.isPublic
         };
       }
       
@@ -299,7 +302,7 @@ class UserApiService {
 
   /**
    * Crea un nuovo quiz
-   * @param {Object} quizData - Dati del quiz { title, description }
+   * @param {Object} quizData - Dati del quiz { title, description, isPublic }
    * @returns {Promise<Object>} Quiz creato con ID
    */
   async createQuiz(quizData) {
@@ -312,7 +315,8 @@ class UserApiService {
         credentials: 'include',
         body: JSON.stringify({
           title: quizData.title,
-          description: quizData.description
+          description: quizData.description,
+          isPublic: quizData.isPublic || false
         })
       });
 
@@ -1002,6 +1006,38 @@ class UserApiService {
       }
     } catch (error) {
       console.error('Error deleting issued quiz:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Ottiene tutti i quiz pubblici con paginazione
+   * GET /api/v1/publicquizz
+   * @param {number} [page=0] - Numero pagina (0-based)
+   * @param {number} [size=10] - Dimensione pagina
+   * @param {string} [sortBy='quiz_id'] - Campo per ordinamento
+   * @returns {Promise<Object>} Pagina di quiz pubblici { content: [], pageable: {}, totalPages, totalElements, ... }
+   */
+  async getPublicQuizzes(page = 0, size = 10, sortBy = 'quiz_id') {
+    try {
+      const url = `${this.baseUrl}/api/v1/publicquizz?page=${page}&size=${size}&sortBy=${encodeURIComponent(sortBy)}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching public quizzes:', error);
       throw error;
     }
   }

@@ -11,7 +11,7 @@ const NotFound = () => {
           <h2>Pagina non trovata</h2>
           <p>L'URL richiesto non esiste.</p>
           <div className="error-actions">
-            <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Ritorna alla Dashboard</button>
+            <button className="btn btn-primary" onClick={() => navigate('/')}>Ritorna alla Home</button>
           </div>
         </div>
       </div>
