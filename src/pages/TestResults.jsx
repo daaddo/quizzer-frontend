@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { userApi } from '../services/userApi';
 import '../styles/test.css';
 
 /**
@@ -11,10 +12,13 @@ const TestResults = () => {
   const location = useLocation();
   
   // Ottieni i dati del test dallo stato di navigazione
-  const { questions, userAnswers, quizTitle, questionCount } = location.state || {};
+  const { questions, userAnswers, quizTitle, questionCount, quizDescription } = location.state || {};
   
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   // Calcola i risultati del test
   useEffect(() => {
@@ -78,6 +82,43 @@ const TestResults = () => {
     navigate(`/quiz/${quizId}`, { 
       state: { showTestConfig: true } 
     });
+  };
+
+  // Handler per salvare i risultati
+  const handleSaveResults = async () => {
+    if (!questions || !userAnswers || !quizId) {
+      setSaveError('Dati insufficienti per salvare i risultati');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setSaveError(null);
+
+      // Formatta i dati secondo la struttura richiesta
+      const quizInfos = {
+        quizId: parseInt(quizId),
+        title: quizTitle || 'Quiz',
+        description: quizDescription || '',
+        domande: questions.map(question => ({
+          titolo: question.title || '',
+          descrizione: question.question,
+          risposte: question.answers.map(answer => ({
+            testo: answer.answer,
+            corretta: answer.correct,
+            chosen: (userAnswers[question.id] || []).includes(answer.id)
+          }))
+        }))
+      };
+
+      await userApi.savePrivateAnswers(quizInfos);
+      setSaved(true);
+    } catch (error) {
+      console.error('Errore salvataggio risultati:', error);
+      setSaveError(error.message || 'Errore durante il salvataggio dei risultati');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Loading state
@@ -220,6 +261,38 @@ const TestResults = () => {
           >
             Torna alla Dashboard
           </button>
+        </div>
+
+        {/* Sezione salvataggio risultati */}
+        <div className="save-results-section">
+          <div className="save-results-info">
+            <div className="info-icon">🔒</div>
+            <p className="info-text">
+              I risultati salvati saranno visibili solo a te nella tua area personale
+            </p>
+          </div>
+          
+          {saved ? (
+            <div className="save-success">
+              <span className="success-icon">✓</span>
+              <span className="success-text">Risultati salvati con successo</span>
+            </div>
+          ) : (
+            <button 
+              onClick={handleSaveResults}
+              className="btn btn-success btn-large"
+              disabled={saving}
+            >
+              {saving ? 'Salvataggio...' : 'Salva Risultati'}
+            </button>
+          )}
+          
+          {saveError && (
+            <div className="save-error">
+              <span className="error-icon">⚠</span>
+              <span className="error-text">{saveError}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -154,15 +154,10 @@ const IssuedQuizInfosPage = () => {
         }
       } catch {}
       setResultsModal({ isOpen: true, loading: true, error: null, questions: [], selectionsByQuestion: selectionsMap, attempt: attemptItem });
-      let questionsPayload = {};
-      try {
-        if (attemptItem && typeof attemptItem.questions === 'string') {
-          questionsPayload = JSON.parse(attemptItem.questions || '{}') || {};
-        } else if (attemptItem && typeof attemptItem.questions === 'object' && attemptItem.questions) {
-          questionsPayload = attemptItem.questions;
-        }
-      } catch {}
-      const data = await userApi.getQuestionsByTokenWithPayload(tokenId, questionsPayload);
+      if (!attemptItem || attemptItem.userId == null) {
+        throw new Error('Tentativo senza userId');
+      }
+      const data = await userApi.getQuestionsByTokenForUser(tokenId, attemptItem.userId);
       setResultsModal((prev) => ({ ...prev, isOpen: true, loading: false, error: null, questions: Array.isArray(data) ? data : [] }));
     } catch (e) {
       setResultsModal((prev) => ({ ...prev, isOpen: true, loading: false, error: e.message || 'Errore caricamento risultati', questions: [] }));
@@ -177,15 +172,27 @@ const IssuedQuizInfosPage = () => {
     try {
       let payload = null;
       if (attemptItem && typeof attemptItem.questions === 'string') {
-        payload = JSON.parse(attemptItem.questions || '{}') || {};
+        const parsed = JSON.parse(attemptItem.questions || '{}');
+        payload = parsed;
       } else if (attemptItem && typeof attemptItem.questions === 'object' && attemptItem.questions) {
         payload = attemptItem.questions;
       }
-      if (!payload || typeof payload !== 'object') return null;
+      if (!payload) return null;
       let total = 0;
-      for (const [, v] of Object.entries(payload)) {
-        const correctArr = Array.isArray(v?.correctOptions) ? v.correctOptions : [];
-        total += correctArr.length;
+      // Nuovo formato possibile: array di domande con risposte [{ testo, corretta, chosen }]
+      if (Array.isArray(payload)) {
+        payload.forEach((q) => {
+          const risposte = Array.isArray(q?.risposte) ? q.risposte : [];
+          risposte.forEach((r) => { if (r?.corretta === true) total += 1; });
+        });
+      } else if (typeof payload === 'object') {
+        // Vecchio formato: mappa { questionId: { correctOptions: [] } }
+        for (const [, v] of Object.entries(payload)) {
+          const correctArr = Array.isArray(v?.correctOptions) ? v.correctOptions : [];
+          total += correctArr.length;
+        }
+      } else {
+        return null;
       }
       return Number.isFinite(total) ? total : null;
     } catch {
@@ -297,7 +304,10 @@ const IssuedQuizInfosPage = () => {
       // Carica domande complete
       let questions = [];
       try {
-        const data = await userApi.getQuestionsByTokenWithPayload(tokenId, questionsPayload);
+        if (attempt && attempt.userId == null) {
+          throw new Error('Tentativo senza userId');
+        }
+        const data = await userApi.getQuestionsByTokenForUser(tokenId, attempt.userId);
         questions = Array.isArray(data) ? data : [];
       } catch (e) {
         alert('Impossibile caricare le domande per il PDF');
@@ -362,23 +372,24 @@ const IssuedQuizInfosPage = () => {
       drawHeader();
 
       questions.forEach((q) => {
-        const qTitle = q?.title || '-';
-        const qText = q?.question ? String(q.question) : '-';
-        const selectedIds = Array.isArray(selectionsMap?.[q.id]) ? selectionsMap[q.id] : [];
-        const answersArr = Array.isArray(q?.answers) ? q.answers : Array.isArray(q?.list) ? q.list : [];
+        const qTitle = (q?.titolo ?? q?.title) || '-';
+        const qText = q?.descrizione ? String(q.descrizione) : (q?.question ? String(q.question) : '-');
+        const selectedIds = Array.isArray(selectionsMap?.[q?.id]) ? selectionsMap[q.id] : [];
+        const answersArr = Array.isArray(q?.risposte) ? q.risposte : (Array.isArray(q?.answers) ? q.answers : (Array.isArray(q?.list) ? q.list : []));
 
         const titleLines = doc.splitTextToSize(qTitle, titleW - 4);
         const questionLines = doc.splitTextToSize(qText, questionW - 4);
 
         const answerLineChunks = [];
         answersArr.forEach((a) => {
-          const isSelected = selectedIds.includes(a.id);
-          const isCorrect = !!a.correct;
+          const isSelected = (a?.chosen === true) || (a?.id != null && selectedIds.includes(a.id));
+          const isCorrect = a?.corretta === true || a?.correct === true;
           let color = [0, 0, 0];
           if (isCorrect && isSelected) color = [0, 187, 119];
           else if (isCorrect && !isSelected) color = [13, 110, 253];
           else if (!isCorrect && isSelected) color = [220, 53, 69];
-          const wrapped = doc.splitTextToSize(`• ${a.answer}`, answersW - 4);
+          const text = a?.testo ?? a?.answer ?? '';
+          const wrapped = doc.splitTextToSize(`• ${text}`, answersW - 4);
           wrapped.forEach((line) => {
             answerLineChunks.push({ text: line, color });
           });

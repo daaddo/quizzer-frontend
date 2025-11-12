@@ -22,6 +22,7 @@ import NotFound from './pages/NotFound'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import CookiePolicy from './pages/CookiePolicy'
 import PublicQuizzes from './pages/PublicQuizzes'
+import QuizResults from './pages/QuizResults'
 import { initCsrf } from './services/csrf.js'
 
 function App() {
@@ -34,7 +35,7 @@ function App() {
       <AuthProvider>
         <Layout>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/verify" element={<EmailVerification/>} />
@@ -45,6 +46,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/oauth2/callback" element={<OidcCallback />} />
             <Route path="/public-quizzes" element={<PublicQuizzes />} />
+            <Route path="/quiz-results" element={<QuizResults />} />
             <Route 
               path="/dashboard" 
               element={

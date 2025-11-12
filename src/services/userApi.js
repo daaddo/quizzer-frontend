@@ -1078,6 +1078,81 @@ class UserApiService {
       throw error;
     }
   }
+
+  /**
+   * Restituisce le domande complete per un tentativo utente dato token
+   * POST /api/v1/quizzes/questions-by-token
+   * Body: { token, user_id }
+   * @param {string} token
+   * @param {number} userId
+   * @returns {Promise<Array<{ id:number, title:string, question:string, answers:Array<{ id:number, answer:string, correct:boolean }> }>>}
+   */
+  async getQuestionsByTokenForUser(token, userId) {
+    try {
+      if (!token) throw new Error('Token mancante');
+      if (userId == null || Number.isNaN(Number(userId))) {
+        throw new Error('userId non valido');
+      }
+      const url = `${this.baseUrl}/api/v1/quizzes/questions-by-token`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ token, user_id: Number(userId) })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 403) throw new Error('Accesso negato');
+        if (response.status === 404) throw new Error('Token o tentativo non trovato');
+        if (response.status === 400) throw new Error('Richiesta non valida');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error fetching questions by token for user (POST):', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Salva i risultati privati di un quiz
+   * POST /api/v1/quizzes/postPrivateAnswers
+   * @param {Object} quizInfos - Dati del quiz con domande e risposte { quizId, title, description, domande: [{ titolo, descrizione, risposte: [{ testo, corretta, chosen }] }] }
+   * @returns {Promise<void>}
+   */
+  async savePrivateAnswers(quizInfos) {
+    try {
+      console.log('Saving private quiz answers:', quizInfos);
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/quizzes/postPrivateAnswers`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(quizInfos)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Non autorizzato - effettua nuovamente il login');
+        }
+        if (response.status === 400) {
+          throw new Error('Dati non validi');
+        }
+        if (response.status === 403) {
+          throw new Error('Accesso negato');
+        }
+        throw new Error(`Errore API: ${response.status}`);
+      }
+
+      console.log('Private answers saved successfully');
+    } catch (error) {
+      console.error('Error saving private answers:', error);
+      throw error;
+    }
+  }
 }
 
 // Esporta istanza singleton

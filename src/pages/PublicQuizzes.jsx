@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import PublicQuizCard from '../components/PublicQuizCard';
-import StartPublicQuizModal from '../components/StartPublicQuizModal';
 import { userApi } from '../services/userApi';
 import '../styles/public-quizzes.css';
 import '../styles/test.css';
@@ -9,7 +8,6 @@ import '../styles/test.css';
  * Pagina che mostra i quiz pubblici disponibili
  */
 const PublicQuizzes = () => {
-  const [startQuizModal, setStartQuizModal] = useState({ isOpen: false, quiz: null });
   const [loading, setLoading] = useState(true);
   const [quizzes, setQuizzes] = useState([]);
   const [error, setError] = useState(null);
@@ -27,6 +25,11 @@ const PublicQuizzes = () => {
   const [viewMode, setViewMode] = useState('cascata'); // 'scrolling' o 'cascata'
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  
+  // Stato per salvataggio risultati
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   // Carica i quiz pubblici
   useEffect(() => {
@@ -64,14 +67,9 @@ const PublicQuizzes = () => {
     loadPublicQuizzes();
   }, [currentPage]);
 
-  const handleStartQuiz = (quiz) => {
-    console.log('Apertura modal per iniziare quiz:', quiz);
-    setStartQuizModal({ isOpen: true, quiz });
-  };
-
-  const handleConfirmStartQuiz = async (data) => {
-    console.log('Avvio quiz con dati:', data);
-    const quizId = data.quizId;
+  const handleStartQuiz = async (quiz) => {
+    console.log('Avvio quiz pubblico:', quiz);
+    const quizId = quiz.id;
     
     try {
       setLoadingQuiz(true);
@@ -86,15 +84,15 @@ const PublicQuizzes = () => {
       
       // Prepara il quiz attivo
       setActiveQuiz({
-        quiz: startQuizModal.quiz,
-        userData: { name: data.name, email: data.email },
+        quiz: quiz,
         questions: questions,
         userAnswers: {}
       });
       
-      setStartQuizModal({ isOpen: false, quiz: null });
       setCurrentIndex(0);
       setShowResults(false);
+      setSaved(false);
+      setSaveError(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('Errore caricamento domande quiz:', err);
@@ -102,10 +100,6 @@ const PublicQuizzes = () => {
     } finally {
       setLoadingQuiz(false);
     }
-  };
-
-  const handleCancelStartQuiz = () => {
-    setStartQuizModal({ isOpen: false, quiz: null });
   };
 
   const handleOpenComments = (quiz) => {
@@ -161,6 +155,8 @@ const PublicQuizzes = () => {
     setShowResults(false);
     setCurrentIndex(0);
     setQuizError(null);
+    setSaved(false);
+    setSaveError(null);
   };
   
   const calculateScore = () => {
@@ -182,6 +178,43 @@ const PublicQuizzes = () => {
     });
     
     return { correct, total };
+  };
+  
+  // Handler per salvare i risultati
+  const handleSaveResults = async () => {
+    if (!activeQuiz || !activeQuiz.questions || !activeQuiz.quiz) {
+      setSaveError('Dati insufficienti per salvare i risultati');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setSaveError(null);
+
+      // Formatta i dati secondo la struttura richiesta
+      const quizInfos = {
+        quizId: activeQuiz.quiz.id,
+        title: activeQuiz.quiz.title || 'Quiz Pubblico',
+        description: activeQuiz.quiz.name || '',
+        domande: activeQuiz.questions.map(question => ({
+          titolo: question.title || '',
+          descrizione: question.question,
+          risposte: question.answers.map(answer => ({
+            testo: answer.answer,
+            corretta: answer.correct,
+            chosen: (activeQuiz.userAnswers[question.id] || []).includes(answer.id)
+          }))
+        }))
+      };
+
+      await userApi.savePrivateAnswers(quizInfos);
+      setSaved(true);
+    } catch (error) {
+      console.error('Errore salvataggio risultati:', error);
+      setSaveError(error.message || 'Errore durante il salvataggio dei risultati');
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Se c'è un quiz attivo, mostra l'interfaccia del quiz
@@ -349,6 +382,40 @@ const PublicQuizzes = () => {
               </div>
             </div>
           )}
+          
+          {/* Sezione salvataggio risultati - visibile solo dopo la correzione */}
+          {showResults && (
+            <div className="save-results-section">
+              <div className="save-results-info">
+                <div className="info-icon">🔒</div>
+                <p className="info-text">
+                  I risultati salvati saranno visibili solo a te nella tua area personale
+                </p>
+              </div>
+              
+              {saved ? (
+                <div className="save-success">
+                  <span className="success-icon">✓</span>
+                  <span className="success-text">Risultati salvati con successo</span>
+                </div>
+              ) : (
+                <button 
+                  onClick={handleSaveResults}
+                  className="btn btn-success btn-large"
+                  disabled={saving}
+                >
+                  {saving ? 'Salvataggio...' : 'Salva Risultati'}
+                </button>
+              )}
+              
+              {saveError && (
+                <div className="save-error">
+                  <span className="error-icon">⚠</span>
+                  <span className="error-text">{saveError}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -381,7 +448,6 @@ const PublicQuizzes = () => {
               className="btn btn-primary"
               onClick={() => {
                 setQuizError(null);
-                setStartQuizModal({ isOpen: false, quiz: null });
               }}
             >
               Riprova
@@ -514,14 +580,6 @@ const PublicQuizzes = () => {
           </div>
         )}
       </div>
-
-      <StartPublicQuizModal
-        isOpen={startQuizModal.isOpen}
-        quiz={startQuizModal.quiz}
-        onConfirm={handleConfirmStartQuiz}
-        onCancel={handleCancelStartQuiz}
-        loading={loadingQuiz}
-      />
     </div>
   );
 };

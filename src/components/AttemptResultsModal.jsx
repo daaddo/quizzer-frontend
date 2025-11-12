@@ -6,8 +6,11 @@ import React, { useEffect } from 'react';
  *  - isOpen: boolean
  *  - loading: boolean
  *  - error: string|null
- *  - questions: Array<{ id, title, question, answers: [{ id, answer, correct }] }>
- *  - selectionsByQuestion: Record<number, number[]> | null // mappa questionId -> selectedOptions ids
+ *  - questions: Array<
+ *      | { titolo: string, descrizione: string, risposte: Array<{ testo: string, chosen: boolean, corretta: boolean }> }
+ *      | { id?: number, title?: string, question?: string, answers?: Array<{ id?: number, answer?: string, correct?: boolean }> }
+ *    >
+ *  - selectionsByQuestion: Record<number, number[]> | null // usato solo come fallback per vecchio formato
  *  - attemptInfo?: { user_name?: string, surname?: string, middle_name?: string, userName?: string, username?: string }
  *  - onClose: () => void
  */
@@ -112,17 +115,26 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                   </tr>
                 </thead>
                 <tbody>
-                  {questions.map((q) => {
-                    const selectedIds = Array.isArray(selectionsByQuestion?.[q.id]) ? selectionsByQuestion[q.id] : [];
+                  {questions.map((q, qIdx) => {
+                    // Supporto nuovo formato (titolo/descrizione/risposte) con fallback al vecchio
+                    const title = q?.titolo ?? q?.title ?? '-';
+                    const questionText = q?.descrizione ?? q?.question ?? '-';
+                    const answers = Array.isArray(q?.risposte)
+                      ? q.risposte
+                      : Array.isArray(q?.answers)
+                        ? q.answers
+                        : [];
+                    const selectedIds = Array.isArray(selectionsByQuestion?.[q?.id]) ? selectionsByQuestion[q.id] : [];
                     return (
-                    <tr key={q.id}>
-                      <td style={{ paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{q.title || '-'}</td>
-                      <td style={{ whiteSpace: 'pre-wrap', paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{q.question || '-'}</td>
+                    <tr key={q?.id ?? qIdx}>
+                      <td style={{ paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{title}</td>
+                      <td style={{ whiteSpace: 'pre-wrap', paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{questionText}</td>
                       <td>
                         <ul style={{ paddingLeft: '1rem', margin: 0 }}>
-                          {(q.answers || []).map((a) => {
-                            const isSelected = selectedIds.includes(a.id);
-                            const isCorrect = !!a.correct;
+                          {answers.map((a, aIdx) => {
+                            // Nuovo formato: testo/corretta/chosen, Fallback: answer/correct + selectionsByQuestion
+                            const isSelected = (a?.chosen === true) || (a?.id != null && selectedIds.includes(a.id));
+                            const isCorrect = a?.corretta === true || a?.correct === true;
                             // Colori:
                             // - Verde (#0b7): corretta e selezionata
                             // - Blu   (#0d6efd): corretta e NON selezionata
@@ -132,8 +144,8 @@ const AttemptResultsModal = ({ isOpen, loading = false, error = null, questions 
                             else if (isCorrect && !isSelected) color = '#0d6efd';
                             else if (!isCorrect && isSelected) color = '#dc3545';
                             return (
-                              <li key={a.id} style={{ color }}>
-                                {a.answer}
+                              <li key={a?.id ?? aIdx} style={{ color }}>
+                                {a?.testo ?? a?.answer}
                                 {/* rimosso testo selezionata per richiesta UX */}
                               </li>
                             );

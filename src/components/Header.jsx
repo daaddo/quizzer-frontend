@@ -31,6 +31,7 @@ const Header = () => {
             <ul className="nav-links">
               <li><Link to="/">Home</Link></li>
               <li><Link to="/public-quizzes">Quiz Pubblici</Link></li>
+              <li><Link to="/quiz-results">Risultati dei Quiz</Link></li>
               {isAuthenticated && (
                 <li><Link to="/dashboard">Dashboard</Link></li>
               )}
