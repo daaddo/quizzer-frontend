@@ -1,92 +1,147 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { userApi } from '../services/userApi';
+import '../components/dashboard.css';
 
 /**
- * Pagina per visualizzare i risultati dei quiz pubblici
+ * Pagina risultati dei quiz (risposte private salvate)
+ * Effettua GET /api/v1/quizzes/getPrivateAnswers all'apertura
+ * Supporta sia il nuovo formato (titolo/descrizione/risposte) sia fallback al vecchio.
  */
 const QuizResults = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [questions, setQuestions] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await userApi.getPrivateAnswers();
+        // Normalizza: può arrivare direttamente l'array, oppure un wrapper { domande: [...] } o { questions: [...] }
+        let q = [];
+        if (Array.isArray(data)) {
+          q = data;
+        } else if (data && typeof data === 'object') {
+          if (Array.isArray(data.domande)) q = data.domande;
+          else if (Array.isArray(data.questions)) q = data.questions;
+        }
+        setQuestions(Array.isArray(q) ? q : []);
+      } catch (e) {
+        setError(e.message || 'Errore nel caricamento dei risultati');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
-    <div className="quiz-results-page">
+    <div className="dashboard">
       <div className="container">
-        {/* Hero Section */}
-        <section className="results-hero">
-          <div className="results-hero-content">
-            <h1 className="results-title">Risultati dei Quiz</h1>
-            <p className="results-subtitle">
-              Esplora i risultati e le statistiche dei quiz pubblici completati
-            </p>
-          </div>
-        </section>
-
-        {/* Coming Soon Section */}
-        <section className="coming-soon-section">
-          <div className="coming-soon-card">
-            <div className="coming-soon-icon">📊</div>
-            <h2 className="coming-soon-title">Funzionalità in Arrivo</h2>
-            <p className="coming-soon-description">
-              Questa sezione è attualmente in fase di sviluppo. 
-              Presto potrai visualizzare statistiche dettagliate, classifiche e risultati dei quiz pubblici.
-            </p>
-            
-            <div className="features-preview">
-              <h3 className="preview-title">Cosa troverai qui:</h3>
-              <ul className="preview-list">
-                <li>
-                  <span className="preview-icon">📈</span>
-                  <span className="preview-text">Statistiche globali dei quiz pubblici</span>
-                </li>
-                <li>
-                  <span className="preview-icon">🏆</span>
-                  <span className="preview-text">Classifiche e top performers</span>
-                </li>
-                <li>
-                  <span className="preview-icon">📋</span>
-                  <span className="preview-text">Storico dei tuoi tentativi</span>
-                </li>
-                <li>
-                  <span className="preview-icon">📊</span>
-                  <span className="preview-text">Analisi dettagliate delle performance</span>
-                </li>
-                <li>
-                  <span className="preview-icon">🎯</span>
-                  <span className="preview-text">Confronto con altri utenti</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="coming-soon-actions">
-              <Link to="/public-quizzes" className="btn btn-primary btn-large">
-                Esplora Quiz Pubblici
-              </Link>
-              <Link to="/dashboard" className="btn btn-secondary btn-large">
-                Vai alla Dashboard
-              </Link>
+        <div className="quiz-grid">
+          <div className="quiz-section-header">
+            <h2 className="quiz-section-title">Risultati quiz</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
             </div>
           </div>
-        </section>
 
-        {/* Info Section */}
-        <section className="info-section">
-          <div className="info-grid">
-            <div className="info-card">
-              <div className="info-icon">🔔</div>
-              <h3 className="info-title">Resta Aggiornato</h3>
-              <p className="info-description">
-                Stiamo lavorando per offrirti la migliore esperienza possibile. 
-                Questa funzionalità sarà disponibile a breve.
-              </p>
+          {loading && (
+            <div className="dashboard-loading" style={{ marginTop: 0 }}>
+              <div className="loading-content">
+                <div className="loading-spinner-large"></div>
+                <h2>Caricamento risultati</h2>
+                <p>Recupero dei dati...</p>
+              </div>
             </div>
-            
-            <div className="info-card">
-              <div className="info-icon">💡</div>
-              <h3 className="info-title">Nel Frattempo</h3>
-              <p className="info-description">
-                Continua a creare e completare quiz per costruire il tuo storico personale 
-                e prepararti alle nuove funzionalità.
-              </p>
+          )}
+
+          {!loading && error && (
+            <div className="dashboard-error" style={{ marginTop: 0 }}>
+              <div className="error-content">
+                <h2>Impossibile caricare</h2>
+                <p>{error}</p>
+              </div>
             </div>
-          </div>
-        </section>
+          )}
+
+          {!loading && !error && (!questions || questions.length === 0) && (
+            <div className="quiz-grid-empty">
+              <h3>Nessun risultato disponibile</h3>
+            </div>
+          )}
+
+          {!loading && !error && questions && questions.length > 0 && (
+            <div className="table-responsive" style={{ overflowX: 'auto' }}>
+              {/* Legenda */}
+              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '0.75rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', width: '120px' }}>Stato</th>
+                    <th style={{ textAlign: 'left' }}>Significato</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0b7' }}></span></td>
+                    <td>Risposte giuste selezionate</td>
+                  </tr>
+                  <tr>
+                    <td><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0d6efd' }}></span></td>
+                    <td>Risposte giuste non selezionate</td>
+                  </tr>
+                  <tr>
+                    <td><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#dc3545' }}></span></td>
+                    <td>Risposte sbagliate selezionate</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <table className="table table-gray" style={{ width: '100%', borderCollapse: 'collapse' }} cellPadding="4" cellSpacing="0">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left' }}>Titolo</th>
+                    <th style={{ textAlign: 'left' }}>Domanda</th>
+                    <th style={{ textAlign: 'left' }}>Risposte</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {questions.map((q, qIdx) => {
+                    const title = q?.titolo ?? q?.title ?? '-';
+                    const questionText = q?.descrizione ?? q?.question ?? '-';
+                    const answers = Array.isArray(q?.risposte) ? q.risposte : (Array.isArray(q?.answers) ? q.answers : []);
+                    return (
+                      <tr key={q?.id ?? qIdx}>
+                        <td style={{ paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{title}</td>
+                        <td style={{ whiteSpace: 'pre-wrap', paddingTop: 2, paddingBottom: 2, lineHeight: 1.2 }}>{questionText}</td>
+                        <td>
+                          <ul style={{ paddingLeft: '1rem', margin: 0 }}>
+                            {answers.map((a, aIdx) => {
+                              const isSelected = a?.chosen === true;
+                              const isCorrect = a?.corretta === true || a?.correct === true;
+                              let color;
+                              if (isCorrect && isSelected) color = '#0b7';
+                              else if (isCorrect && !isSelected) color = '#0d6efd';
+                              else if (!isCorrect && isSelected) color = '#dc3545';
+                              return (
+                                <li key={a?.id ?? aIdx} style={{ color }}>
+                                  {a?.testo ?? a?.answer}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

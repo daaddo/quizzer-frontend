@@ -1118,6 +1118,42 @@ class UserApiService {
   }
 
   /**
+   * Recupera i risultati privati salvati
+   * GET /api/v1/quizzes/getPrivateAnswers
+   * @returns {Promise<any>} può essere un array di domande o un wrapper con campo domande
+   */
+  async getPrivateAnswers() {
+    try {
+      const url = `${this.baseUrl}/api/v1/quizzes/getPrivateAnswers`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Non autorizzato');
+        if (response.status === 404) throw new Error('Risultati non trovati');
+        throw new Error(`Errore API: ${response.status}`);
+      }
+      // Può tornare array o oggetto
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return await response.json();
+      }
+      // Fallback: prova a parse-are testo come JSON
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    } catch (error) {
+      console.error('Error fetching private answers:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Salva i risultati privati di un quiz
    * POST /api/v1/quizzes/postPrivateAnswers
    * @param {Object} quizInfos - Dati del quiz con domande e risposte { quizId, title, description, domande: [{ titolo, descrizione, risposte: [{ testo, corretta, chosen }] }] }
